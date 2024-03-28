@@ -1,18 +1,8 @@
-trait Random {
-  def nextInt: (Int, Random)
-}
-case class MyRandom(seed: Long) extends Random {
-  def nextInt: (Int, Random) = {
-    val newSeed = (seed * 0x5DEECE66DL + 0xBL) &
-      0xFFFFFFFFFFFFL
-    val nextRandom = MyRandom(newSeed)
-    val n = (newSeed >>> 16).toInt
-    (n, nextRandom)
-  }
-}
+import scala.annotation.tailrec
 
 object Main {
-
+  type Board = List[List[Char]]
+  type Coord2D = (Int, Int)
   def randomChar(rand:MyRandom):(Char, MyRandom) = {
     val r = rand.nextInt
     // A = 65  e Z = 90
@@ -21,16 +11,50 @@ object Main {
     (c.toChar, MyRandom(r._1))
   }
 
+  def fillOneCell(board:Board, letter: Char, coord:Coord2D):Board = {
+    def aux(row: List[Char], x: Int): List[Char] = row match {
+      case Nil => Nil
+      case head :: tail => if (x == 0) letter :: tail else head :: aux(tail, x - 1)
+    }
+    board match {
+      case List(Nil) => List(Nil)
+      case head :: tail => if (coord._2 == 0) aux(head, coord._1) :: tail else head :: fillOneCell(board, letter, (coord._1, coord._2 - 1))
+    }
+  }
+  def getItem[A](l:List[A], pos:Int): A = l match{
+    case Nil => l.last
+    case head::tail => if(pos == 0) head else getItem(tail, pos-1)
+  }
+
+  def fillWord(board:Board, word:String, position:List[Coord2D]): Board = {
+    @tailrec
+    def aux(res:Board, positionAux:List[Coord2D], i:Int): Board = positionAux match {
+      case Nil => res
+      case head::tail => aux(fillOneCell(res, getItem[Char](word.toList, i), head), tail, i + 1)
+    }
+    aux(board, position, 0)
+  }
+
+  def setBoardWithWords(board:Board, words:List[String], positions:List[List[Coord2D]]): Board = {
+    @tailrec
+    def aux(res:Board, positionsAux:List[List[Coord2D]], i:Int): Board = positionsAux match{
+      case Nil => res
+      case head::tail => {
+        System.out.println(res)
+        System.out.println(getItem[String](words, i), head)
+        aux(fillWord(res, getItem[String](words, i), head), tail, i + 1)
+      }
+    }
+    aux(board, positions, 0)
+  }
+
 
 
   def main(args: Array[String]): Unit = {
-    val c = randomChar(MyRandom(2))
-    val c1 = randomChar(c._2)
-    val c2 = randomChar(c1._2)
-    val c3 = randomChar(c2._2)
-    val c4 = randomChar(c3._2)
-    val c5 = randomChar(c4._2)
-    System.out.println(c._1, c1._1, c2._1, c3._1, c4._1, c5._1)
+    val board = List.fill(8)(List.fill(8)('A'))
+    val words = List("Ola", "Bau", "Pim")
+    val board1 = setBoardWithWords(board, words, List(List((0,0),(1,0),(2,0)),List((0,1),(1,1),(2,1)),List((0,2),(1,2),(2,2))))
+    System.out.println(board1)
 
   }
 }
