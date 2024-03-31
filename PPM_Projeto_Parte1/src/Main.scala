@@ -1,9 +1,12 @@
+import Direction.{Direction, South}
+
 import scala.annotation.tailrec
 import scala.reflect.internal.util.Position
 
 object Main {
   type Board = List[List[Char]]
   type Coord2D = (Int, Int)
+  type HiddenWord = (String, List[Coord2D])
   def randomChar(rand:MyRandom):(Char, MyRandom) = {
     val r = rand.nextInt
     // A = 65  e Z = 90
@@ -50,15 +53,15 @@ object Main {
     aux(board, position, 0)
   }
 
-  def setBoardWithWords(board:Board, words:List[String], positions:List[List[Coord2D]]): Board = {
+  def setBoardWithWords(board:Board, hiddenWords: List[HiddenWord]): Board = {
     @tailrec
-    def aux(res:Board, positionsAux:List[List[Coord2D]], i:Int): Board = positionsAux match{
+    def aux(res:Board, hiddenWordsAux:List[HiddenWord]): Board = hiddenWordsAux match{
       case Nil => res
-      case head::tail => {
-        aux(fillWord(res, getItem[String](words, i), head), tail, i + 1)
+      case (hWord, hPos)::tail => {
+        aux(fillWord(res, hWord,hPos), tail)
       }
     }
-    aux(board, positions, 0)
+    aux(board, hiddenWords)
   }
 
   def printBoard(board: Board):Unit = {
@@ -96,13 +99,21 @@ object Main {
     aux(board, r)
   }
 
+  def play(word:String, pos: Coord2D, dir:Direction, wordsToFind:List[HiddenWord]):Boolean = wordsToFind match{
+    case Nil => false
+    case (hWord, hPos)::tail => if(word == hWord && getItem[Coord2D](hPos, 0) == pos && getItem[Coord2D](hPos, 1) == Direction.nextPos(dir, pos)) true else play(word, pos, dir, tail)
+  }
+
   def main(args: Array[String]): Unit = {
     val board = List.fill(8)(List.fill(8)(' '))
-    val words = List("Ola", "Bau", "Pim")
-    val coordenates = List(List((0,0),(0,1),(0,2)),List((1,0),(1,1),(1,2)),List((2,0),(2,1),(2,2)))
-    val board1 = setBoardWithWords(board, words,coordenates)
-    val board2 = completeBoardRandomly(board1, MyRandom(1), randomChar)
+    val hiddenWord1 = ("Ola",List((0,0),(0,1),(0,2)))
+    val hiddenWord2 = ("Bau",List((1,0),(1,1),(1,2)))
+    val hiddenWord3 = ("Pim",List((2,0),(2,1),(2,2)))
+    val wordsToFind = List(hiddenWord1, hiddenWord2, hiddenWord3)
+    val board1 = setBoardWithWords(board, wordsToFind)
+    val board2 = completeBoardRandomly(board1, MyRandom(2), randomChar)
     printBoard(board2._1)
+    System.out.println(play("Pim", (2,0),Direction.South, wordsToFind))
 
   }
 }
