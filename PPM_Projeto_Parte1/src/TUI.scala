@@ -1,8 +1,8 @@
 import FileManager.{NumberOfWordsToFind, lerPalavrasEscondidas}
-import Main.{Board, completeBoardRandomly, play, randomChar, setBoardWithWords}
+import Main.{Board, HiddenWord, completeBoardRandomly, play, randomChar, setBoardWithWords}
 
 import scala.annotation.tailrec
-import UtilsTUI.{askForWord, getUserInput, printBoard, printGameOver, printGameState, printNewGame, showPrompt}
+import UtilsTUI.{askForWord, getUserInput, printBoard, printGameOver, printGameState, printVictory, showPrompt}
 
 case class GameState(board: (Board,MyRandom), WordsRemainig: Int)
 
@@ -20,10 +20,10 @@ object TUI extends App {
 
   val incialGameState = GameState(board2, NumberOfWordsToFind(caminhoDoArquivo))
 
-  mainLoop(incialGameState)
+  mainLoop(incialGameState, wordsToFind)
 
   @tailrec
-  def mainLoop(gameState: GameState) {
+  def mainLoop(gameState: GameState, wordsToFind: List[HiddenWord]) {
 
     showPrompt()
     val userInput = getUserInput()
@@ -40,18 +40,24 @@ object TUI extends App {
         val found = play(word, pos, direction, wordsToFind)
 
         if (found) {
-
+          // Filtra a palavra encontrada fora de wordsToFind
+          val updatedWordsToFind = wordsToFind.filterNot(_._1 == word)
 
           val newNumWordsRemaining = gameState.WordsRemainig - 1
           val newGameState = gameState.copy(gameState.board, WordsRemainig = newNumWordsRemaining)
-          printGameState(newGameState)
-          mainLoop(newGameState)
+
+          // Verifica se todas as palavras foram encontradas
+          if (newGameState.WordsRemainig == 0) {
+            printVictory()
+
+          } else {
+            printGameState(newGameState)
+            mainLoop(newGameState.copy(WordsRemainig = updatedWordsToFind.length), wordsToFind = updatedWordsToFind) // Atualiza o loop com a lista modificada
+          }
 
         } else {
-
           printGameState(gameState)
-          mainLoop(gameState)
-
+          mainLoop(gameState, wordsToFind) // Mantém a lista original, pois a palavra não foi encontrada
         }
       }
 
@@ -63,7 +69,7 @@ object TUI extends App {
 
       case _ => {
         print("Invalid Key")
-        mainLoop(gameState)
+        mainLoop(gameState, wordsToFind)
       }
     }
   }

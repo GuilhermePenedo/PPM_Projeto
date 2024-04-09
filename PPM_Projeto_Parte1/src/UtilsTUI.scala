@@ -38,7 +38,7 @@ object UtilsTUI {
 
   def askForWord(): (String, Coord2D, Direction.Value) = {
 
-    println("\nTry (word:initialCoordinate:direction)")
+    println("\nTry (word:initialCoordinate/i.e->0,0:direction)")
 
     val Array(word, pointStr, directionStr) = readLine().split(":")
     val point = stringToPoint(pointStr)
@@ -53,11 +53,9 @@ object UtilsTUI {
     println("\n Words Remainig: " + gameState.WordsRemainig)
   }
 
-
-
   def printGameOver(): Unit = println("\n=== GAME OVER ===")
 
-  def printNewGame(): Unit = println("\n=== NEW GAME ===")
+  def printVictory(): Unit = println("\n=== CONGRATULATIONS ===")
 
 
 }
