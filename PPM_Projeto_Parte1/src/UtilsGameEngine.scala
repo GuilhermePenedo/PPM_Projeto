@@ -3,7 +3,7 @@ import FileManager.lerPalavrasEscondidas
 
 import scala.annotation.tailrec
 
-object Main {
+object UtilsGameEngine {
   type Board = List[List[Char]]
   type Coord2D = (Int, Int)
   type HiddenWord = (String, List[Coord2D])

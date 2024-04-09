@@ -1,24 +1,35 @@
 import Direction.{Direction, East, North, NorthEast, NorthWest, South, SouthEast, SouthWest, West}
-import Main.{Board, Coord2D, iterateBoard}
+import UtilsGameEngine.{Board, Coord2D, HiddenWord, getItem, iterateBoard}
 
 import scala.io.StdIn.readLine
 
 object UtilsTUI {
-
+  val reset = "\u001B[0m"
   def showPrompt(): Unit = {
     print("\n(T)ry word or (q)uit: ")
   }
-
-  def printBoard(board: Board):Unit = {
+  def printBoard(board: Board, colorBoard:Board):Unit = {
+    def getColor(c: Char):String =  c match{
+      case 'W' => "\u001B[0m"
+      case 'G' => "\u001B[32m"
+    }
     def printChar(c:Char, p:Coord2D):Char = {
+      val colorType = getItem[Char](getItem[List[Char]](colorBoard, p._2), p._1)
+      val color = getColor(colorType)
       if(p._1 == 0){System.out.print("\n")}
-      System.out.print(c.toString + " ")
+      System.out.print(color + c.toString + reset + " ")
       c
     }
     iterateBoard(board, printChar)
   }
 
+  def wordToColor(w:List[Char], c:String):String = w match {
+    case Nil => ""
+    case head::tail => wordToColor(tail, c) + c
+  }
+
   def getUserInput(): String = readLine.trim.toUpperCase
+
 
   def stringToDirection(s: String): Direction = s match {
     case "North" => Direction.North
@@ -49,8 +60,8 @@ object UtilsTUI {
   }
 
   def printGameState(gameState: GameState): Unit = {
-    printBoard(gameState.board._1)
-    println("\n Words Remainig: " + gameState.WordsRemainig)
+    printBoard(gameState.board._1, gameState.colorBoard)
+    println("\n Words Remainig: " + gameState.wordsToFind.length)
   }
 
   def printGameOver(): Unit = println("\n=== GAME OVER ===")

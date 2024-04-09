@@ -1,4 +1,4 @@
-import Main.{Coord2D, HiddenWord}
+import UtilsGameEngine.{Coord2D, HiddenWord}
 
 import scala.io.Source
 
