@@ -1,12 +1,14 @@
-import Direction.{Direction, South}
+import Direction.Direction
+import FileManager.lerPalavrasEscondidas
 
 import scala.annotation.tailrec
-import scala.reflect.internal.util.Position
 
 object Main {
   type Board = List[List[Char]]
   type Coord2D = (Int, Int)
   type HiddenWord = (String, List[Coord2D])
+
+
   def randomChar(rand:MyRandom):(Char, MyRandom) = {
     val r = rand.nextInt
     // A = 65  e Z = 90
@@ -64,15 +66,6 @@ object Main {
     aux(board, hiddenWords)
   }
 
-  def printBoard(board: Board):Unit = {
-    def printChar(c:Char, p:Coord2D):Char = {
-      if(p._1 == 0){System.out.print("\n")}
-      System.out.print(c.toString + " ")
-      c
-    }
-    iterateBoard(board, printChar)
-  }
-
   def completeBoardRandomly(board:Board,r:MyRandom, f: MyRandom => (Char, MyRandom)):(Board, MyRandom) = {
     def iterateRow(row:List[Char], rowR:MyRandom): (List[Char],MyRandom)  = {
       def aux(l: List[Char], rAux:MyRandom): (List[Char],MyRandom) = l match {
@@ -104,16 +97,27 @@ object Main {
     case (hWord, hPos)::tail => if(word == hWord && getItem[Coord2D](hPos, 0) == pos && getItem[Coord2D](hPos, 1) == Direction.nextPos(dir, pos)) true else play(word, pos, dir, tail)
   }
 
+  def TUI(): Unit = {
+
+  }
+
   def main(args: Array[String]): Unit = {
-    val board = List.fill(8)(List.fill(8)(' '))
-    val hiddenWord1 = ("Ola",List((0,0),(0,1),(0,2)))
-    val hiddenWord2 = ("Bau",List((1,0),(1,1),(1,2)))
-    val hiddenWord3 = ("Pim",List((2,0),(2,1),(2,2)))
-    val wordsToFind = List(hiddenWord1, hiddenWord2, hiddenWord3)
-    val board1 = setBoardWithWords(board, wordsToFind)
-    val board2 = completeBoardRandomly(board1, MyRandom(2), randomChar)
-    printBoard(board2._1)
-    System.out.println(play("Pim", (2,0),Direction.South, wordsToFind))
+
+//    val board = List.fill(8)(List.fill(8)(' '))
+//
+////    val hiddenWord1 = ("OLA",List((0,0),(0,1),(0,2)))
+////    val hiddenWord2 = ("BAU",List((1,0),(1,1),(1,2)))
+////    val hiddenWord3 = ("Pim",List((2,0),(2,1),(2,2)))
+////    val wordsToFind = List(hiddenWord1)
+//
+//    // Ler palavras escondidas do ficheiro
+//    val caminhoDoArquivo = "HiddenWords.txt"
+//    val wordsToFind = lerPalavrasEscondidas(caminhoDoArquivo)
+//
+//    val board1 = setBoardWithWords(board, wordsToFind)
+//    val board2 = completeBoardRandomly(board1, MyRandom(2), randomChar)
+//    printBoard(board2._1)
+//    System.out.println(play("Pim", (2,0),Direction.South, wordsToFind))
 
   }
 }
