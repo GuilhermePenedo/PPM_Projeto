@@ -20,12 +20,29 @@ object UtilsGameEngine {
     case Nil => l.last
     case head::tail => if(pos == 0) head else getItem(tail, pos-1)
   }
-  def iterateBoard(board:Board, fun: (Char,Coord2D) => Char):Board = {
+  def interactWithBoard(board:Board, fun: (Char,Coord2D) => Char):Board = {
 
-    def iterateRow(row:List[Char], y:Int): List[Char] = {
+    def interactWithRow(row:List[Char], y:Int): List[Char] = {
       def aux(l: List[Char], x:Int): List[Char] = l match {
         case Nil => Nil
         case head :: tail => fun(head, (x,y)) :: aux(tail, (x+1))
+      }
+      aux(row,0)
+    }
+
+    def aux(bAux:Board, p:Coord2D):Board = bAux match {
+      case Nil => List(Nil)
+      case head :: tail => interactWithRow(head,p._2) :: aux(tail, (0, p._2+1))
+    }
+    aux(board, (0,0))
+  }
+
+  def iterateBoard(board:Board, fun: (Char,Coord2D) => Boolean):Board = {
+
+    def iterateRow(row:List[Char], y:Int): Char = {
+      def aux(l: List[Char], x:Int): Char = l match {
+        case Nil => ' '
+        case head :: tail => if(fun(head, (x,y))) head else aux(tail, (x+1))
       }
       aux(row,0)
     }
@@ -42,7 +59,7 @@ object UtilsGameEngine {
       if (p == coord) letter else c
     }
 
-    iterateBoard(board, checkCell)
+    interactWithBoard(board, checkCell)
   }
 
   def fillWord(board:Board, word:String, position:List[Coord2D]): Board = {
@@ -67,7 +84,7 @@ object UtilsGameEngine {
   }
 
   def completeBoardRandomly(board:Board,r:MyRandom, f: MyRandom => (Char, MyRandom)):(Board, MyRandom) = {
-    def iterateRow(row:List[Char], rowR:MyRandom): (List[Char],MyRandom)  = {
+    def interactWithRow(row:List[Char], rowR:MyRandom): (List[Char],MyRandom)  = {
       def aux(l: List[Char], rAux:MyRandom): (List[Char],MyRandom) = l match {
         case Nil => (Nil,rAux)
         case head :: tail => {
@@ -84,7 +101,7 @@ object UtilsGameEngine {
     def aux(bAux:Board, rAux:MyRandom):(Board,MyRandom) = bAux match {
       case Nil => (List(Nil),rAux)
       case head :: tail => {
-        val row = iterateRow(head, rAux)
+        val row = interactWithRow(head, rAux)
         val nextRow = aux(tail, row._2)
         (row._1 :: nextRow._1, nextRow._2)
       }

@@ -4,7 +4,7 @@ import javafx.scene.{Parent, Scene}
 import javafx.stage.Stage
 class GameGUI extends Application {
   override def start(primaryStage: Stage): Unit = {
-    primaryStage.setTitle("My Hello World App")
+    primaryStage.setTitle("Letter Soup")
     val fxmlLoader =
       new FXMLLoader(getClass.getResource("Controller.fxml"))
     val mainViewRoot: Parent = fxmlLoader.load()

@@ -1,5 +1,5 @@
 import Direction.{Direction, East, North, NorthEast, NorthWest, South, SouthEast, SouthWest, West}
-import UtilsGameEngine.{Board, Coord2D, HiddenWord, getItem, iterateBoard}
+import UtilsGameEngine.{Board, Coord2D, HiddenWord, getItem, interactWithBoard}
 
 import scala.io.StdIn.readLine
 
@@ -20,7 +20,7 @@ object UtilsTUI {
       System.out.print(color + c.toString + reset + " ")
       c
     }
-    iterateBoard(board, printChar)
+    interactWithBoard(board, printChar)
   }
 
   def wordToColor(w:List[Char], c:String):String = w match {
