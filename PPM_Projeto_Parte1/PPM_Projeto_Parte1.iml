@@ -10,5 +10,7 @@
     <orderEntry type="library" name="scala-sdk-2.13.13" level="application" />
     <orderEntry type="library" name="scala-sdk-2.13.3 (4)" level="application" />
     <orderEntry type="library" name="scala-sdk-2.13.12" level="application" />
+    <orderEntry type="library" name="scala-sdk-2.13.14" level="project" />
+    <orderEntry type="library" name="lib" level="project" />
   </component>
 </module>
