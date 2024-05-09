@@ -37,21 +37,27 @@ object UtilsGameEngine {
     aux(board, (0,0))
   }
 
-  def iterateBoard(board:Board, fun: (Char,Coord2D) => Boolean):Board = {
+  def iterateBoard(board: Board, fun: (Char, Coord2D) => Boolean): (Boolean, (Char, Coord2D)) = {
 
-    def iterateRow(row:List[Char], y:Int): Char = {
-      def aux(l: List[Char], x:Int): Char = l match {
-        case Nil => ' '
-        case head :: tail => if(fun(head, (x,y))) head else aux(tail, (x+1))
+    def iterateRow(row: List[Char], y: Int): (Boolean, (Char, Coord2D)) = {
+      def aux(l: List[Char], x: Int): (Boolean, (Char, Coord2D)) = l match {
+        case Nil => (false, (' ', (x, y)))
+        case head :: Nil => (false, (head, (x, y)))
+        case head :: tail =>
+          if (fun(head, (x, y))) (true, (head, (x, y)))
+          else aux(tail, x + 1)
       }
-      aux(row,0)
+      aux(row, 0)
     }
 
-    def aux(bAux:Board, p:Coord2D):Board = bAux match {
-      case Nil => List(Nil)
-      case head :: tail => iterateRow(head,p._2) :: aux(tail, (0, p._2+1))
+    def aux(bAux: Board, p: Coord2D): (Boolean, (Char, Coord2D)) = bAux match {
+      case Nil => (false, (' ', p))
+      case head :: tail =>
+        val (found, result) = iterateRow(head, p._2)
+        if (found) (found, result)
+        else aux(tail, (p._1 + 1, 0))
     }
-    aux(board, (0,0))
+    aux(board, (0, 0))
   }
 
   def fillOneCell(board:Board, letter: Char, coord:Coord2D):Board = {

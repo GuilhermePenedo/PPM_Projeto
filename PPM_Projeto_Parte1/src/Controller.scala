@@ -4,7 +4,7 @@ import GameEngine.mainLoop
 import javafx.fxml.FXML
 import javafx.scene.control.{Button, Label, TextField}
 import javafx.scene.layout.{ColumnConstraints, GridPane, RowConstraints}
-import UtilsGameEngine.{Board, Coord2D, HiddenWord, completeBoardRandomly, getItem, interactWithBoard, play, randomChar, setBoardWithWords}
+import UtilsGameEngine.{Board, Coord2D, HiddenWord, completeBoardRandomly, getItem, interactWithBoard, iterateBoard, play, randomChar, setBoardWithWords}
 import UtilsTUI.{askForWord, getUserInput, printBoard, printGameOver, printGameState, printVictory, showPrompt, wordToColor}
 import javafx.event.ActionEvent
 import javafx.scene.Node
@@ -43,19 +43,15 @@ class Controller {
   val initialGUIGameState: GUIGameState = GUIGameState(board, wordsToFind, foundedWords, colorBoard, List(), playOver = false)
 
   @FXML
-  private var grid1: GridPane = _
+  var grid1: GridPane = _
 
   @FXML
-  private var button1: Button = _
+  var button1: Button = _
 
   @FXML
-  private var wordLabel: Label = _
+  var wordLabel: Label = _
 
-  @FXML
-  protected def initialize(): Unit = {
-    mainLoop(initialGUIGameState)
-  }
-  private def updateBoard(board: Board):Unit = {
+  def updateBoard(board: Board):Unit = {
     def aux(c:Char, p:Coord2D):Char = {
       val button = new Button(c.toString)
       button.setMinWidth(30)
@@ -78,11 +74,12 @@ class Controller {
     }
   }
 
-  private final def mainLoop(gameState: GUIGameState): Unit = {
+  def mainLoop(gameState: GUIGameState): Unit = {
     updateBoard(gameState.board._1)
+    //val userInput = getUserInput()
     val wordsRemaining = gameState.wordsToFind.length
-    val currentPlay = getPlay(gameState.board)
-    println(gameState.play)
+    //val currentPlay = getLastPlay(gameState.board._1, gameState.play)
+    //println(currentPlay)
 
     // handle the result
     if(gameState.playOver){
@@ -110,20 +107,19 @@ class Controller {
 
         }
       }
-    //mainLoop(gameState) // Mantém a lista original, pois a palavra não foi encontrada
+    //mainLoop(gameState)
  }
 
   private def getLastPlay(board: Board, oldPlays: List[(Char, Coord2D)]) : (Char, Coord2D) = {
-    def aux(c:Char, p:Coord2D):Char = {
-      if(!inList[(Char, Coord2D)]((c,p), oldPlays)){
-        val button: Node = grid1.getChildren.get(p._1 + p._2 * grid1.getRowCount)
-        if(button.getStyle == BUTTON_PRESSED){
-
-        }
-      }
-      c
+    def aux(c:Char, p:Coord2D):Boolean = {
+      val button: Node = grid1.getChildren.get(p._1 + p._2 * grid1.getRowCount)
+      !inList[(Char, Coord2D)]((c,p), oldPlays) && button.getStyle == BUTTON_PRESSED
     }
-    interactWithBoard(board, aux)
+
+    val (found, result) = iterateBoard(board, aux)
+    if(found) result else getLastPlay(board: Board, oldPlays: List[(Char, Coord2D)]) : (Char, Coord2D)
+
+
   }
 
   @tailrec
