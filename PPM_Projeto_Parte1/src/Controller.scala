@@ -94,8 +94,8 @@ class Controller {
       val initialCoord = guess.head
       val initialDirection = Direction.getDirection(initialCoord, getItem(guess, 1))
       val found = play(word, gameState.board._1, initialCoord, initialDirection) //&& inList(word, gameState.wordsToFind)
-      print(gameState.wordsToFind)
-      print(word, initialCoord, initialDirection)
+      println(gameState.wordsToFind)
+      println(word, initialCoord, initialDirection)
       if (found) {
         paintBoard(gameState.board._1, guess, BUTTON_GREEN)
         val updatedWordsToFind = gameState.wordsToFind.filterNot(_ == word)

@@ -37,9 +37,9 @@ object UtilsTUI {
     }
 
     def printChar(c: Char, p: Coord2D): Char = {
-      val colorType = getItem(getItem(colorBoard, p._2), p._1)
+      val colorType = getItem(getItem(colorBoard, p._1), p._2)
       val color = getColor(colorType)
-      if (p._1 == 0) {
+      if (p._2 == 0) {
         System.out.print("\n")
       }
       System.out.print(color + c.toString + RESET + " ")
