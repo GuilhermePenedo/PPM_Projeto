@@ -48,7 +48,7 @@ object TUIGameEngine extends App {
       userInput match {
 
         case "T" => {
-
+5
           printBoard(gameState.board._1, gameState.colorBoard)
           val (word, pos, direction) = askForPlay()
           val found = play(word, gameState.board._1, pos, direction) //Valida apenas se da posiçao dada existe uma palvra que está no ficheiro

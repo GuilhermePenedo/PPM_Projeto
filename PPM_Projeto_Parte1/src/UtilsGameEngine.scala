@@ -30,13 +30,13 @@ object UtilsGameEngine {
   }
   def iterateBoard(board: Board, fun: (Char, Coord2D) => Boolean): (Boolean, (Char, Coord2D)) = {
 
-    def iterateRow(row: List[Char], y: Int): (Boolean, (Char, Coord2D)) = {
-      def aux(l: List[Char], x: Int): (Boolean, (Char, Coord2D)) = l match {
-        case Nil => (false, (' ', (x, y)))
-        case head :: Nil => (false, (head, (x, y)))
+    def iterateRow(row: List[Char], i: Int): (Boolean, (Char, Coord2D)) = {
+      def aux(l: List[Char], j: Int): (Boolean, (Char, Coord2D)) = l match {
+        case Nil => (false, (' ', (i, j)))
+        case head :: Nil => (false, (head, (i, j)))
         case head :: tail =>
-          if (fun(head, (x, y))) (true, (head, (x, y)))
-          else aux(tail, x + 1)
+          if (fun(head, (i, j))) (true, (head, (i, j)))
+          else aux(tail, j + 1)
       }
       aux(row, 0)
     }
@@ -44,25 +44,25 @@ object UtilsGameEngine {
     def aux(bAux: Board, p: Coord2D): (Boolean, (Char, Coord2D)) = bAux match {
       case Nil => (false, (' ', p))
       case head :: tail =>
-        val (found, result) = iterateRow(head, p._2)
+        val (found, result) = iterateRow(head, p._1)
         if (found) (found, result)
-        else aux(tail, (p._1 + 1, 0))
+        else aux(tail, (p._1 + 1,0))
     }
     aux(board, (0, 0))
   }
   def interactWithBoard(board:Board, fun: (Char,Coord2D) => Char):Board = {
 
-    def interactWithRow(row:List[Char], y:Int): List[Char] = {
-      def aux(l: List[Char], x:Int): List[Char] = l match {
+    def interactWithRow(row:List[Char], i:Int): List[Char] = {
+      def aux(l: List[Char], j:Int): List[Char] = l match {
         case Nil => Nil
-        case head :: tail => fun(head, (x,y)) :: aux(tail, (x+1))
+        case head :: tail => fun(head, (i,j)) :: aux(tail, (j+1))
       }
       aux(row,0)
     }
 
     def aux(bAux:Board, p:Coord2D):Board = bAux match {
       case Nil => List(Nil)
-      case head :: tail => interactWithRow(head,p._2) :: aux(tail, (0, p._2+1))
+      case head :: tail => interactWithRow(head,p._1) :: aux(tail, (p._1+1,0))
     }
     aux(board, (0,0))
   }

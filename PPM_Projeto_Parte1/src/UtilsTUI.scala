@@ -40,9 +40,9 @@ object UtilsTUI {
       val colorType = getItem(getItem(colorBoard, p._1), p._2)
       val color = getColor(colorType)
       if (p._2 == 0) {
-        System.out.print("\n")
+        print("\n")
       }
-      System.out.print(color + c.toString + RESET + " ")
+      print(color + c.toString + RESET + " ")
       c
     }
 
