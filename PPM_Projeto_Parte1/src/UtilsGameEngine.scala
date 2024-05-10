@@ -124,33 +124,37 @@ object UtilsGameEngine {
 
   def play(wordInput : String, board: Board, startPos: Coord2D, dir: Direction): Boolean = {
     def isValidMove(pos: Coord2D): Boolean = {
-      pos._1 >= 0 && pos._1 < board.length && pos._2 >= 0 && pos._2 < board(pos._1).length
+      val (i,j) = pos
+      i >= 0 && j < board.length && j >= 0 && j < getItem(board, i).length
     }
 
-    @tailrec
-    def dfs(word: String, pos: Coord2D, dir: Direction, visited: Set[Coord2D], wordIndex: Int): Boolean = {
-      if (wordIndex == word.length) {
-        true // Word found
-      } else {
-        val nextPos = Direction.nextPos(dir, pos)
-        if (isValidMove(nextPos) && board(nextPos._1)(nextPos._2) == word(wordIndex) && !visited(nextPos)) {
-          dfs(word, nextPos, dir, visited + nextPos, wordIndex + 1)
-        } else {
-          false
-        }
-      }
+    def dfs(word: List[Char], pos: Coord2D, visited: Set[Coord2D], directionList: List[Direction]): Boolean = word match {
+      case Nil => false
+      case _::tail =>
+        serchAllDirections(tail, pos, visited, directionList)
     }
 
-    def checkWord(word: String, startPos: Coord2D, dir: Direction): Boolean = {
+    def serchAllDirections(word: List[Char], pos: Coord2D, visited: Set[Coord2D], directionList: List[Direction]): Boolean = directionList match {
+          case Nil => false
+          case dir :: dirTail =>
+            val nextPos = Direction.nextPos(dir, pos)
+            isValidMove(nextPos) &&
+            !visited(nextPos) &&
+            dfs(word, nextPos, visited + nextPos, dirTail)
+    }
+
+    def checkWord(word: List[Char], startPos: Coord2D, dir: Direction): Boolean = {
       val nextPos = Direction.nextPos(dir, startPos)
       if (isValidMove(nextPos) && board(nextPos._1)(nextPos._2) == word(1)) {
-        dfs(word, nextPos, dir, Set(startPos, nextPos), 2)
+        dfs(word, nextPos, Set(startPos, nextPos), Direction.values.toList)
       } else {
         false
       }
     }
-
-    checkWord(wordInput, startPos, dir)
+    val (i1,j1) = startPos
+    val (i2,j2) = Direction.nextPos(dir, startPos)
+    val wordList = wordInput.toList
+    getItem(getItem(board, i1),j1) == getItem(wordList,0) && getItem(getItem(board, i2),j2) == getItem(wordList,1) && checkWord(wordList.tail, (i2,j2), dir)
   }
 
   def checkBoard(board: Board, wordsToFind: List[String]): Boolean = {

@@ -53,7 +53,7 @@ class Controller {
   def paintBoard(board: Board, coords:List[Coord2D], color: String):Boolean = coords match {
     case Nil => true
     case (x,y)::tail =>
-      val buttonIndex =  x + y * boardPane.getColumnCount
+      val buttonIndex =  y + x * boardPane.getRowCount
       val button = boardPane.getChildren.get(buttonIndex)
       button.setStyle(color)
       paintBoard(board, tail, color)
@@ -63,7 +63,7 @@ class Controller {
     val filePath = "HiddenWords.txt"
     val wordsToPlace = lerPalavrasEscondidas(filePath)
     val wordsToFind =  wordsToPlace map (x => x._1)
-    val emptyBoard: Board = List.fill(8)(List.fill(8)(' '))
+    val emptyBoard: Board = List.fill(5)(List.fill(5)(' '))
     val boardWithHiddenWords: Board = setBoardWithWords(emptyBoard, wordsToPlace)
     val board: (Board,MyRandom) = completeBoardRandomly(boardWithHiddenWords, MyRandom(2), randomChar)
 
