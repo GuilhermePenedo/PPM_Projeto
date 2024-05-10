@@ -1,11 +1,10 @@
-import UtilsGameEngine.{Coord2D, HiddenWord}
-import com.sun.source.doctree.HiddenTree
+import UtilsGameEngine.{Coord2D}
 
 import scala.io.Source
 
 object FileManager {
 
-  def lerPalavrasEscondidas(path: String): List[HiddenWord] = {
+  def lerPalavrasEscondidas(path: String): List[(String, List[Coord2D])] = {
     val bufferedSource = Source.fromFile(path)
     try {
       val hiddenWords = for {
