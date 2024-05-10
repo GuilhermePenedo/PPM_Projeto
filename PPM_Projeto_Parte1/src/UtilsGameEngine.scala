@@ -16,9 +16,9 @@ object UtilsGameEngine {
     (c.toChar, MyRandom(r._1))
   }
   @tailrec
-  def getItem[A](l:List[A], pos:Int): A = l match{
+  def getItem[A](l: List[A], pos: Int): A = l match {
     case Nil => l.last
-    case head::tail => if(pos == 0) head else getItem(tail, pos-1)
+    case head :: tail => if (pos == 0) head else getItem(tail, pos - 1)
   }
 
   @tailrec

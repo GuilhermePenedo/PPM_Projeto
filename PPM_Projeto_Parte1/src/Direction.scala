@@ -22,14 +22,14 @@ object Direction extends Enumeration {
     val dY = iCoord._2 - fCoord._2
 
     (dX, dY) match {
-      case (0, 1) => NORTH
-      case (0, -1) => SOUTH
-      case (-1, 0) => EAST
-      case (1, 0) => WEST
-      case (-1, 1) => NORTHEAST
+      case (1, 0) => NORTH
+      case (-1, 0) => SOUTH
+      case (0, -1) => EAST
+      case (0, 1) => WEST
+      case (1, -1) => NORTHEAST
       case (1, 1) => NORTHWEST
       case (-1, -1) => SOUTHEAST
-      case (1, -1) => SOUTHWEST
+      case (-1, 1) => SOUTHWEST
       case _ => INVALID
     }
   }

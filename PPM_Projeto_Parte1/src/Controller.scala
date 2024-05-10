@@ -44,7 +44,7 @@ class Controller {
       button.setMinHeight(30)
       button.setOnAction(onLetterClicked)
       button.setStyle(BUTTON_DEFAULT)
-      boardPane.add(button, p._1, p._2)
+      boardPane.add(button, p._2, p._1)
       c
     }
     interactWithBoard(board, aux)
@@ -77,8 +77,8 @@ class Controller {
     event.getSource match {
       case button: Button =>
         val letter = button.getText
-        val x = GridPane.getColumnIndex(button)
-        val y = GridPane.getRowIndex(button)
+        val x = GridPane.getRowIndex(button)
+        val y = GridPane.getColumnIndex(button)
         if(validPlay(x,y, guess) && !inList((x,y), guess)) {
           word += letter
           guess = guess:+(x,y)
