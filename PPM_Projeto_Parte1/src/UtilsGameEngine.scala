@@ -1,4 +1,4 @@
-import Direction.Direction
+import Direction.{Direction, INVALID}
 import FileManager.lerPalavrasEscondidas
 
 import scala.annotation.tailrec
@@ -17,7 +17,7 @@ object UtilsGameEngine {
   }
   @tailrec
   def getItem[A](l: List[A], pos: Int): A = l match {
-    case Nil => l.last
+    case Nil => throw new IndexOutOfBoundsException("Nao encontrei elemento")
     case head :: tail => if (pos == 0) head else getItem(tail, pos - 1)
   }
 
@@ -27,6 +27,25 @@ object UtilsGameEngine {
     case head::tail =>
       if(item == head) true
       else inList(item, tail)
+  }
+
+  def compCoord(a:Coord2D, b:Coord2D, board: Board): Int = {
+    val index1 = a._1 + a._2 * getItem(board,a._1).length
+    val index2 = b._1 + b._2 * getItem(board,b._1).length
+    index1-index2
+  }
+
+  def nextCoord(pos:Coord2D, board:Board): Coord2D = {
+    if(pos._1 < board.length){
+      if(pos._2 < board.head.length){
+        (pos._1,pos._2+1)
+      }else{
+        println(pos._2)
+        (pos._1+1,0)
+      }
+    }else{
+      (0,0)
+    }
   }
   def iterateBoard(board: Board, fun: (Char, Coord2D) => Boolean): (Boolean, (Char, Coord2D)) = {
 
@@ -61,7 +80,7 @@ object UtilsGameEngine {
     }
 
     def aux(bAux:Board, p:Coord2D):Board = bAux match {
-      case Nil => List(Nil)
+      case Nil => Nil
       case head :: tail => interactWithRow(head,p._1) :: aux(tail, (p._1+1,0))
     }
     aux(board, (0,0))
@@ -79,7 +98,7 @@ object UtilsGameEngine {
     @tailrec
     def aux(res:Board, positionAux:List[Coord2D], i:Int): Board = positionAux match {
       case Nil => res
-      case head::tail => aux(fillOneCell(res, getItem[Char](word.toList, i), head), tail, i + 1)
+      case head::tail => aux(fillOneCell(res, getItem(word.toList, i), head), tail, i + 1)
     }
 
     aux(board, position, 0)
@@ -112,7 +131,7 @@ object UtilsGameEngine {
     }
 
     def aux(bAux:Board, rAux:MyRandom):(Board,MyRandom) = bAux match {
-      case Nil => (List(Nil),rAux)
+      case Nil => (Nil,rAux)
       case head :: tail => {
         val row = iterateRow(head, rAux)
         val nextRow = aux(tail, row._2)
@@ -123,77 +142,61 @@ object UtilsGameEngine {
   }
 
   def play(wordInput : String, board: Board, startPos: Coord2D, dir: Direction): Boolean = {
-    def isValidMove(pos: Coord2D): Boolean = {
+    def isValidPos(pos: Coord2D, board:Board): Boolean = {
       val (i,j) = pos
       i >= 0 && j < board.length && j >= 0 && j < getItem(board, i).length
     }
 
-    def dfs(word: List[Char], pos: Coord2D, visited: Set[Coord2D], directionList: List[Direction]): Boolean = word match {
-      case Nil => false
-      case _::tail =>
-        serchAllDirections(tail, pos, visited, directionList)
-    }
-
-    def serchAllDirections(word: List[Char], pos: Coord2D, visited: Set[Coord2D], directionList: List[Direction]): Boolean = directionList match {
-          case Nil => false
-          case dir :: dirTail =>
-            val nextPos = Direction.nextPos(dir, pos)
-            isValidMove(nextPos) &&
-            !visited(nextPos) &&
-            dfs(word, nextPos, visited + nextPos, dirTail)
-    }
-
-    def checkWord(word: List[Char], startPos: Coord2D, dir: Direction): Boolean = {
-      val nextPos = Direction.nextPos(dir, startPos)
-      if (isValidMove(nextPos) && board(nextPos._1)(nextPos._2) == word(1)) {
-        dfs(word, nextPos, Set(startPos, nextPos), Direction.values.toList)
-      } else {
-        false
-      }
-    }
     val (i1,j1) = startPos
-    val (i2,j2) = Direction.nextPos(dir, startPos)
+    val (i2, j2) = Direction.nextPos(dir, startPos)
     val wordList = wordInput.toList
-    getItem(getItem(board, i1),j1) == getItem(wordList,0) && getItem(getItem(board, i2),j2) == getItem(wordList,1) && checkWord(wordList.tail, (i2,j2), dir)
+    val isCorrectChar = getItem(getItem(board, i1), j1) == getItem(wordList, 0)
+    val directionList = Direction.values.toList filter (x => x != Direction.getOpposite(dir) &&  x != INVALID)
+    wordInput.length match{
+      case 0 => false
+      case 1 => isCorrectChar
+      case _ =>
+          isValidPos((i2, j2), board) &&
+          isCorrectChar &&
+          getItem(getItem(board, i2), j2) == getItem(wordList, 1) &&
+          searchDirections(wordInput.tail.toList, board, (i2, j2), directionList)
+    }
   }
 
-  def checkBoard(board: Board, wordsToFind: List[String]): Boolean = {
-    def isValidWord(word: String): Boolean =
-      word.foldLeft(true)((acc, char) => acc && char.isLetter)
+  def searchDirections(word: List[Char], board: Board, startPos: Coord2D, directions: List[Direction]): Boolean = directions match {
+    case Nil => false
+    case dir :: tail =>  play(listToString(word), board, startPos, dir) || searchDirections(word, board, startPos, tail)
+  }
 
-    @tailrec
-    def searchFromPositions(positions: List[Coord2D], directions: List[Direction], words: List[String], found: Set[Coord2D]): Boolean = {
-      positions match {
-        case Nil => true
-        case pos :: restPos =>
-          directions match {
-            case Nil => searchFromPositions(restPos, Direction.values.toList, words, found)
-            case dir :: restDir =>
-              val foundFromPosition = words.foldLeft(false)((acc, word) => acc || play(word, board, pos, dir))
-              if (foundFromPosition) {
-                val newPos = Direction.nextPos(dir, pos)
-                searchFromPositions(newPos :: restPos, restDir, words, found + pos)
-              } else {
-                searchFromPositions(restPos, directions, words, found)
-              }
-          }
+  private def listToString(l: List[Char]): String = l match {
+    case Nil => ""
+    case head::tail => head + listToString(tail)
+  }
+
+
+  def checkBoard(board: Board, wordsToFind: List[String]): Int = {
+    def checkWord(word: String, startPos: Coord2D): Int = {
+      def aux(c: Char, p: Coord2D): Boolean = {
+        if (compCoord(startPos, p, board) > 0) {
+          searchDirections(word.toList, board, p, Direction.values.toList filter (x => x != INVALID))
+        } else false
       }
+
+      val res = iterateBoard(board, aux)
+      val nextPos = nextCoord(res._2._2, board)
+      print(res)
+      if (nextPos != (0, 0)) {
+        if (res._1) 1 + checkWord(word, nextPos)
+        else checkWord(word, nextPos)
+      } else 0
     }
 
-    val positions: List[Coord2D] =
-      board.zipWithIndex.foldLeft(List.empty[Coord2D]) {
-        case (acc, (row, i)) =>
-          row.zipWithIndex.foldLeft(acc) {
-            case (innerAcc, (_, j)) => (i, j) :: innerAcc
-          }
-      }
-
-    val result = searchFromPositions(positions, Direction.values.toList, wordsToFind, Set())
-
-    val allWordsValid = wordsToFind.foldLeft(true)((acc, word) => acc && isValidWord(word))
-
-    result && allWordsValid
+    // Função para verificar quantas vezes cada palavra pode ser encontrada no tabuleiro
+    wordsToFind.map(word => checkWord(word, (0, 0))).sum
   }
+
+
+
 
 
 }

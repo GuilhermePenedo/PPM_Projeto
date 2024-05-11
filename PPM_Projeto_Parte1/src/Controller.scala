@@ -27,6 +27,7 @@ class Controller {
   var gameState: GUIGameState = _
   var word: String = _
   var guess: List[Coord2D] = _
+  var greenSquares: List[Coord2D] = _
 
   @FXML
   var boardPane: GridPane = _
@@ -55,7 +56,9 @@ class Controller {
     case (x,y)::tail =>
       val buttonIndex =  y + x * boardPane.getRowCount
       val button = boardPane.getChildren.get(buttonIndex)
-      button.setStyle(color)
+      //if(!inList((x,y), greenSquares)){
+        button.setStyle(color)
+      //}
       paintBoard(board, tail, color)
   }
 
@@ -63,7 +66,7 @@ class Controller {
     val filePath = "HiddenWords.txt"
     val wordsToPlace = lerPalavrasEscondidas(filePath)
     val wordsToFind =  wordsToPlace map (x => x._1)
-    val emptyBoard: Board = List.fill(5)(List.fill(5)(' '))
+    val emptyBoard: Board = List.fill(8)(List.fill(8)(' '))
     val boardWithHiddenWords: Board = setBoardWithWords(emptyBoard, wordsToPlace)
     val board: (Board,MyRandom) = completeBoardRandomly(boardWithHiddenWords, MyRandom(2), randomChar)
 
@@ -93,10 +96,11 @@ class Controller {
     if(guess.length > 1) {
       val initialCoord = guess.head
       val initialDirection = Direction.getDirection(initialCoord, getItem(guess, 1))
-      val found = play(word, gameState.board._1, initialCoord, initialDirection) //&& inList(word, gameState.wordsToFind)
+      val found = play(word, gameState.board._1, initialCoord, initialDirection) && inList(word, gameState.wordsToFind)
       println(gameState.wordsToFind)
       println(word, initialCoord, initialDirection)
       if (found) {
+        //greenSquares = guess
         paintBoard(gameState.board._1, guess, BUTTON_GREEN)
         val updatedWordsToFind = gameState.wordsToFind.filterNot(_ == word)
 

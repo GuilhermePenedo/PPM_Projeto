@@ -17,6 +17,17 @@ object Direction extends Enumeration {
     case SOUTHWEST => (pos._1 + 1, pos._2 - 1)
   }
 
+  def getOpposite(direction: Direction):Direction = direction match{
+    case NORTH  => SOUTH
+    case SOUTH => NORTH
+    case EAST => WEST
+    case WEST => EAST
+    case NORTHEAST => SOUTHWEST
+    case NORTHWEST => SOUTHEAST
+    case SOUTHEAST => NORTHWEST
+    case SOUTHWEST => NORTHEAST
+  }
+
   def getDirection(iCoord: Coord2D, fCoord: Coord2D):Direction = {
     val dX = iCoord._1 - fCoord._1
     val dY = iCoord._2 - fCoord._2
