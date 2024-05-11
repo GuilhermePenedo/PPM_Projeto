@@ -17,7 +17,7 @@ object UtilsGameEngine {
   }
   @tailrec
   def getItem[A](l: List[A], pos: Int): A = l match {
-    case Nil => throw new IndexOutOfBoundsException("Nao encontrei elemento")
+    case Nil => throw new IndexOutOfBoundsException("Nao encontrei elemento -> " + pos.toString + " em " + l.toString())
     case head :: tail => if (pos == 0) head else getItem(tail, pos - 1)
   }
 
@@ -33,6 +33,12 @@ object UtilsGameEngine {
     val index1 = a._1 + a._2 * getItem(board,a._1).length
     val index2 = b._1 + b._2 * getItem(board,b._1).length
     index1-index2
+  }
+
+  def isPalindrome(s: List[Char]): Boolean = s match{
+    case Nil => true
+    case _::Nil => true
+    case x::xs => if(x == xs.last) isPalindrome(xs.init) else false
   }
 
   def nextCoord(pos:Coord2D, board:Board): Coord2D = {
@@ -154,7 +160,7 @@ object UtilsGameEngine {
   def countPaths(wordInput : String, board: Board, startPos: Coord2D, dir: Direction): Int = {
     def isValidPos(pos: Coord2D, board:Board): Boolean = {
       val (i,j) = pos
-      i >= 0 && j < board.length && j >= 0 && j < getItem(board, i).length
+      i >= 0 && i < board.length && j >= 0 && j < getItem(board, i).length
     }
 
     val (i1,j1) = startPos
@@ -182,7 +188,7 @@ object UtilsGameEngine {
   }
 
 
-  def checkBoard(board: Board, wordsToFind: List[String]): List[Int] = {
+  def checkBoard(board: Board, wordsToFind: List[String]): Boolean = {
     def countOccurrenceInBoard(board: Board, word:List[Char], directions: List[Direction]): Int = {
       def countOccurrenceInRow(row: List[Char], i: Int): Int = {
         def aux(l: List[Char], j: Int): Int = l match {
@@ -206,9 +212,12 @@ object UtilsGameEngine {
     }
 
     val directions = Direction.values.toList filter (x => x != INVALID)
-    wordsToFind map (x => (countOccurrenceInBoard(board, x.toList, directions)))
+    val correctNrWord = wordsToFind map (x => if(isPalindrome(x.toList)) 2 else 1)
+    val wordsOccurrences = wordsToFind map (x => (countOccurrenceInBoard(board, x.toList, directions)))
+    print(correctNrWord, wordsOccurrences)
+    correctNrWord == wordsOccurrences
   }
-  
+
 
 
 

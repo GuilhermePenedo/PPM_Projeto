@@ -25,7 +25,7 @@ object TUIGameEngine extends App {
 
   //Colocar as palavras a encontrar e letras aleatórias no tabuleiro
   val boardWithHiddenWords = setBoardWithWords(emptyBoard, wordsToFind)
-  val board = completeBoardRandomly(boardWithHiddenWords, MyRandom(2), randomChar)
+  val board = validateBoard(completeBoardRandomly(boardWithHiddenWords, MyRandom(2), randomChar), wordsToFind)
 
   // Colocar as cores no tabuleiro de cor
   val colorBoard = emptyColorBoard
@@ -42,9 +42,6 @@ object TUIGameEngine extends App {
     val wordsRemaining = gameState.wordsToFind.length
     showPrompt()
     val userInput = getUserInput()
-    val validBoard = true
-    print(checkBoard(gameState.board._1, gameState.wordsToFind.map(_._1)))
-    if (validBoard) {
       // handle the result
       userInput match {
 
@@ -95,9 +92,23 @@ object TUIGameEngine extends App {
           mainLoop(gameState)
         }
       }
+  }
+  @tailrec
+  def validateBoard(boardR: (Board,MyRandom), wordsToFind: List[(String, List[Coord2D])]): (Board, MyRandom) = {
+    val wordList = wordsToFind map (x => x._1)
+    val boardSize = boardR._1.length
+    val r = boardR._2
+
+    printBoard(boardR._1, List.fill(boardSize)(List.fill(boardSize)('W')))
+    if (checkBoard(boardR._1, wordList)) {
+      boardR
     } else {
-      println("The board is not valid")
+      val emptyBoard = List.fill(boardSize)(List.fill(boardSize)(' '))
+      val boardWithHiddenWords = setBoardWithWords(emptyBoard, wordsToFind)
+      val boardR = completeBoardRandomly(boardWithHiddenWords, r, randomChar)
+      validateBoard(boardR, wordsToFind)
     }
   }
-
 }
+
+

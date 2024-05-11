@@ -1,8 +1,8 @@
 import Direction.Direction
 import FileManager.lerPalavrasEscondidas
 import javafx.fxml.FXML
-import javafx.scene.control.{Button, Label, TextField}
-import javafx.scene.layout.{GridPane}
+import javafx.scene.control.{Button, Label}
+import javafx.scene.layout.GridPane
 import UtilsGameEngine.{Board, Coord2D, completeBoardRandomly, getItem, interactWithBoard, play, randomChar, setBoardWithWords, inList}
 import javafx.event.ActionEvent
 import javafx.scene.Node
@@ -27,7 +27,7 @@ class Controller {
   var gameState: GUIGameState = _
   var word: String = _
   var guess: List[Coord2D] = _
-  var greenSquares: List[Coord2D] = _
+  var greenSquares: List[Coord2D] = Nil
 
   @FXML
   var boardPane: GridPane = _
@@ -56,9 +56,11 @@ class Controller {
     case (x,y)::tail =>
       val buttonIndex =  y + x * boardPane.getRowCount
       val button = boardPane.getChildren.get(buttonIndex)
-      //if(!inList((x,y), greenSquares)){
+      if(inList((x,y), greenSquares)){
+        button.setStyle(BUTTON_GREEN)
+      }else{
         button.setStyle(color)
-      //}
+      }
       paintBoard(board, tail, color)
   }
 
@@ -100,8 +102,8 @@ class Controller {
       println(gameState.wordsToFind)
       println(word, initialCoord, initialDirection)
       if (found) {
-        //greenSquares = guess
         paintBoard(gameState.board._1, guess, BUTTON_GREEN)
+        greenSquares = conc(greenSquares,guess)
         val updatedWordsToFind = gameState.wordsToFind.filterNot(_ == word)
 
         gameState = GUIGameState(gameState.board, updatedWordsToFind)
@@ -115,6 +117,12 @@ class Controller {
       }
       resetPlay()
     }
+  }
+
+  private def conc[A](a: List[A], b: List[A]):List[A] = b match{
+    case Nil => a
+    case head::tail => conc(a :+ head, tail)
+
   }
 
   private def resetPlay() = {
