@@ -1,5 +1,7 @@
-import UtilsGameEngine.{Coord2D}
 
+import UtilsGeneral.Coord2D
+
+import java.io.{File, PrintWriter}
 import scala.io.Source
 
 object FileManager {
@@ -19,6 +21,27 @@ object FileManager {
       hiddenWords.toList
     } finally {
       bufferedSource.close()
+    }
+  }
+
+  def readRandom(): Int = {
+    val bufferedSource = Source.fromFile("random.txt")
+    try {
+      val hiddenWords = for {
+        line <- bufferedSource.getLines()
+      } yield line
+      hiddenWords.toList.head.toInt
+    } finally {
+      bufferedSource.close()
+    }
+  }
+
+  def writeRandom(number: Int): Unit = {
+    val writer = new PrintWriter(new File("random.txt"))
+    try {
+      writer.println(number)
+    } finally {
+      writer.close()
     }
   }
 

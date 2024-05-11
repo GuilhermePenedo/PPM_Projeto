@@ -1,30 +1,19 @@
-import Direction.Direction
-import FileManager.lerPalavrasEscondidas
+import UtilsGameEngine.{GameState, correctGuess, iniGame, play, updateGameState}
+import UtilsGeneral.{Board, Coord2D, getItem, inList, iterateMatrix}
+import UtilsTUI.printBoard
 import javafx.fxml.FXML
 import javafx.scene.control.{Button, Label}
 import javafx.scene.layout.GridPane
-import UtilsGameEngine.{Board, Coord2D, completeBoardRandomly, getItem, interactWithBoard, play, randomChar, setBoardWithWords, inList}
 import javafx.event.ActionEvent
-import javafx.scene.Node
-
-import scala.annotation.tailrec
-
-case class GUIGameState(board: (Board,MyRandom),
-                     wordsToFind: List[String])
-
-case class Guess(stage: Int,
-                 word: String,
-                 initialCoord: Coord2D,
-                 dir: Direction)
 
 class Controller {
   val BUTTON_BORDER = "-fx-border-color: black; " + "-fx-border-width: 1px; " + "-fx-border-style: solid;"
   val BUTTON_PRESSED = "-fx-background-color: #BEBEFFFF;" + BUTTON_BORDER
   val BUTTON_DEFAULT = "-fx-background-color: #ffffff;" + BUTTON_BORDER
-  val BUTTON_GREEN = "-fx-background-color: #00FF00;" + BUTTON_BORDER
+  val BUTTON_GREEN = "-fx-background-color: #4CBB17;" + BUTTON_BORDER
 
   // Criar instancia ininicial de jogo
-  var gameState: GUIGameState = _
+  var gameState: GameState = _
   var word: String = _
   var guess: List[Coord2D] = _
   var greenSquares: List[Coord2D] = Nil
@@ -39,42 +28,24 @@ class Controller {
   var wordLabel: Label = _
 
   def makeBoard(board: Board):Unit = {
-    def aux(c:Char, p:Coord2D):Char = {
-      val button = new Button(c.toString)
+    def resRow(current:(Char,Coord2D), a:Unit):Unit = {
+      val button = new Button(current._1.toString)
       button.setMinWidth(30)
       button.setMinHeight(30)
       button.setOnAction(onLetterClicked)
       button.setStyle(BUTTON_DEFAULT)
-      boardPane.add(button, p._2, p._1)
-      c
+      boardPane.add(button, current._2._2, current._2._1)
     }
-    interactWithBoard(board, aux)
-  }
+    def resM(a:Unit, b:Unit):Unit = {}
 
-  def paintBoard(board: Board, coords:List[Coord2D], color: String):Boolean = coords match {
-    case Nil => true
-    case (x,y)::tail =>
-      val buttonIndex =  y + x * boardPane.getRowCount
-      val button = boardPane.getChildren.get(buttonIndex)
-      if(inList((x,y), greenSquares)){
-        button.setStyle(BUTTON_GREEN)
-      }else{
-        button.setStyle(color)
-      }
-      paintBoard(board, tail, color)
+    iterateMatrix[Char, Unit](board, resM, resRow, ())
   }
 
   def initialize(): Unit = {
-    val filePath = "HiddenWords.txt"
-    val wordsToPlace = lerPalavrasEscondidas(filePath)
-    val wordsToFind =  wordsToPlace map (x => x._1)
-    val emptyBoard: Board = List.fill(5)(List.fill(5)(' '))
-    val boardWithHiddenWords: Board = setBoardWithWords(emptyBoard, wordsToPlace)
-    val board: (Board,MyRandom) = completeBoardRandomly(boardWithHiddenWords, MyRandom(2), randomChar)
-
-    gameState = GUIGameState(board, wordsToFind)
+    gameState = iniGame(5)
+    makeBoard(gameState.board._1)
+    paintBoard(gameState.board._1, gameState.colorBoard)
     resetPlay()
-    makeBoard(board._1)
   }
 
   @FXML
@@ -98,31 +69,37 @@ class Controller {
     if(guess.length > 1) {
       val initialCoord = guess.head
       val initialDirection = Direction.getDirection(initialCoord, getItem(guess, 1))
-      val found = play(word, gameState.board._1, initialCoord, initialDirection) && inList(word, gameState.wordsToFind)
-      println(gameState.wordsToFind)
-      println(word, initialCoord, initialDirection)
-      if (found) {
-        paintBoard(gameState.board._1, guess, BUTTON_GREEN)
-        greenSquares = conc(greenSquares,guess)
-        val updatedWordsToFind = gameState.wordsToFind.filterNot(_ == word)
-
-        gameState = GUIGameState(gameState.board, updatedWordsToFind)
+      println(word, gameState.board._1, initialCoord, initialDirection)
+      if (correctGuess(word, initialCoord, initialDirection, gameState)) {
+        gameState = updateGameState(gameState, word)
+        paintBoard(gameState.board._1, gameState.colorBoard)
+        resetPlay()
         if (gameState.wordsToFind.isEmpty) {
           println("Win")
-          resetPlay()
         }
 
       }else{
-        paintBoard(gameState.board._1, guess, BUTTON_DEFAULT)
+        paintBoard(gameState.board._1, gameState.colorBoard)
       }
       resetPlay()
     }
   }
 
-  private def conc[A](a: List[A], b: List[A]):List[A] = b match{
-    case Nil => a
-    case head::tail => conc(a :+ head, tail)
+  private def paintBoard(board: Board, colorBoard: Board):Unit = {
+    def getSyle(c: Char): String = c match {
+      case 'W' => BUTTON_DEFAULT
+      case 'G' => BUTTON_GREEN
+    }
+    def resRow(current:(Char,Coord2D), a:Unit):Unit = {
+      val buttonIndex =  boardPane.getRowCount * (current._2._1 + 1) - current._2._2 -1
+      val button = boardPane.getChildren.get(buttonIndex)
+      val styleType = getItem(colorBoard, current._2)
+      button.setStyle(getSyle(styleType))
+    }
+    def resM(a:Unit, b:Unit):Unit = {}
 
+    printBoard(colorBoard, colorBoard)
+    iterateMatrix[Char, Unit](board, resM, resRow, ())
   }
 
   private def resetPlay() = {
@@ -132,7 +109,7 @@ class Controller {
 
   @FXML
   private def onResetPlayButtonClick(): Unit = {
-    paintBoard(gameState.board._1, guess, BUTTON_DEFAULT)
+    paintBoard(gameState.board._1, gameState.colorBoard)
     resetPlay()
   }
 

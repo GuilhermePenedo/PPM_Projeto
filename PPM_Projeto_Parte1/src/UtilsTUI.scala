@@ -1,6 +1,8 @@
 import Direction._
-import UtilsGameEngine.{Board, Coord2D, getItem, interactWithBoard, iterateBoard}
+import UtilsGameEngine.GameState
+import UtilsGeneral.{Board, Coord2D, getItem, iterateMatrix, updateMatrix}
 
+import scala.annotation.tailrec
 import scala.io.StdIn.{readInt, readLine}
 
 object UtilsTUI {
@@ -35,23 +37,31 @@ object UtilsTUI {
       case 'W' => "\u001B[0m"
       case 'G' => "\u001B[32m"
     }
-
-    def printChar(c: Char, p: Coord2D): Char = {
-      val colorType = getItem(getItem(colorBoard, p._1), p._2)
+    def resRow(current:(Char,Coord2D), a:String):String = {
+      val colorType = getItem(colorBoard, current._2)
       val color = getColor(colorType)
-      if (p._2 == 0) {
-        print("\n")
-      }
-      print(color + c.toString + RESET + " ")
-      c
+      color + current._1.toString + RESET + " " + a
     }
-
-    interactWithBoard(board, printChar)
+    print(iterateMatrix(board, (a:String,b:String)=>(a + "\n" + b),resRow, ""))
   }
 
   def wordToColor(w: List[Char], c: String): String = w match {
     case Nil => ""
     case head :: tail => wordToColor(tail, c) + c
+  }
+
+  @tailrec
+  def setGreenWords(colorBoard: Board, coords: List[Coord2D]): Board = {
+    def aux(colorBoard: Board, coord: Coord2D): Board = {
+      def checkCell(c: Char, p: Coord2D): Char = {
+        if (p == coord) 'G' else c
+      }
+      updateMatrix(colorBoard, checkCell)
+    }
+    coords match{
+      case Nil => colorBoard
+      case head::tail => setGreenWords(aux(colorBoard, head), tail)
+    }
   }
 
   def getUserInput(): String = readLine.trim.toUpperCase

@@ -1,103 +1,20 @@
 import Direction.{Direction, INVALID}
-import FileManager.lerPalavrasEscondidas
+import FileManager.{lerPalavrasEscondidas, readRandom, writeRandom}
+import UtilsGeneral._
+import UtilsTUI.setGreenWords
 
 import scala.annotation.tailrec
 
+
 object UtilsGameEngine {
-  type Board = List[List[Char]]
-  type Coord2D = (Int, Int)
-
-
-  def randomChar(rand:MyRandom):(Char, MyRandom) = {
-    val r = rand.nextInt
-    // A = 65  e Z = 90
-    val n = (r._1 % (25))
-    val c = (if(n<0) (-n + 65) else (n + 65))
-    (c.toChar, MyRandom(r._1))
-  }
-  @tailrec
-  def getItem[A](l: List[A], pos: Int): A = l match {
-    case Nil => throw new IndexOutOfBoundsException("Nao encontrei elemento -> " + pos.toString + " em " + l.toString())
-    case head :: tail => if (pos == 0) head else getItem(tail, pos - 1)
-  }
-
-  @tailrec
-  def inList[A](item:A, l:List[A]): Boolean = l match{
-    case Nil => false
-    case head::tail =>
-      if(item == head) true
-      else inList(item, tail)
-  }
-
-  def compCoord(a:Coord2D, b:Coord2D, board: Board): Int = {
-    val index1 = a._1 + a._2 * getItem(board,a._1).length
-    val index2 = b._1 + b._2 * getItem(board,b._1).length
-    index1-index2
-  }
-
-  def isPalindrome(s: List[Char]): Boolean = s match{
-    case Nil => true
-    case _::Nil => true
-    case x::xs => if(x == xs.last) isPalindrome(xs.init) else false
-  }
-
-  def nextCoord(pos:Coord2D, board:Board): Coord2D = {
-    if(pos._1 < board.length){
-      if(pos._2 < board.head.length){
-        (pos._1,pos._2+1)
-      }else{
-        println(pos._2)
-        (pos._1+1,0)
-      }
-    }else{
-      (0,0)
-    }
-  }
-  def iterateBoard(board: Board, fun: (Char, Coord2D) => Boolean): (Boolean, (Char, Coord2D)) = {
-
-    def iterateRow(row: List[Char], i: Int): (Boolean, (Char, Coord2D)) = {
-      def aux(l: List[Char], j: Int): (Boolean, (Char, Coord2D)) = l match {
-        case Nil => (false, (' ', (i, j)))
-        case head :: Nil => (false, (head, (i, j)))
-        case head :: tail =>
-          if (fun(head, (i, j))) (true, (head, (i, j)))
-          else aux(tail, j + 1)
-      }
-      aux(row, 0)
-    }
-
-    def aux(bAux: Board, p: Coord2D): (Boolean, (Char, Coord2D)) = bAux match {
-      case Nil => (false, (' ', p))
-      case head :: tail =>
-        val (found, result) = iterateRow(head, p._1)
-        if (found) (found, result)
-        else aux(tail, (p._1 + 1,0))
-    }
-    aux(board, (0, 0))
-  }
-  def interactWithBoard(board:Board, fun: (Char,Coord2D) => Char):Board = {
-
-    def interactWithRow(row:List[Char], i:Int): List[Char] = {
-      def aux(l: List[Char], j:Int): List[Char] = l match {
-        case Nil => Nil
-        case head :: tail => fun(head, (i,j)) :: aux(tail, (j+1))
-      }
-      aux(row,0)
-    }
-
-    def aux(bAux:Board, p:Coord2D):Board = bAux match {
-      case Nil => Nil
-      case head :: tail => interactWithRow(head,p._1) :: aux(tail, (p._1+1,0))
-    }
-    aux(board, (0,0))
-  }
+  case class GameState(board: (Board,MyRandom), wordsToFind: List[(String, List[Coord2D])], colorBoard:Board)
 
   def fillOneCell(board:Board, letter: Char, coord:Coord2D):Board = {
     def checkCell(c: Char, p: Coord2D): Char = {
       if (p == coord) letter else c
     }
 
-    interactWithBoard(board, checkCell)
+    updateMatrix(board, checkCell)
   }
 
   def fillWord(board:Board, word:String, position:List[Coord2D]): Board = {
@@ -151,10 +68,8 @@ object UtilsGameEngine {
       countPaths(wordInput : String, board: Board, startPos: Coord2D, dir: Direction) > 0
   }
 
-
-  private def listToString(l: List[Char]): String = l match {
-    case Nil => ""
-    case head::tail => head + listToString(tail)
+  def correctGuess(word: String, initialCoord:Coord2D, initialDirection:Direction, gameState:GameState):Boolean = {
+    play(word, gameState.board._1, initialCoord, initialDirection) && inList(word, gameState.wordsToFind map (x => x._1))
   }
 
   def countPaths(wordInput : String, board: Board, startPos: Coord2D, dir: Direction): Int = {
@@ -190,37 +105,53 @@ object UtilsGameEngine {
 
   def checkBoard(board: Board, wordsToFind: List[String]): Boolean = {
     def countOccurrenceInBoard(board: Board, word:List[Char], directions: List[Direction]): Int = {
-      def countOccurrenceInRow(row: List[Char], i: Int): Int = {
-        def aux(l: List[Char], j: Int): Int = l match {
-          case Nil => 0
-          case head :: tail=>
-            if(head == word.head) {
-              searchDirections(word, board, (i,j),directions) + aux(tail, j + 1)
-            }else {
-              aux(tail, j + 1)
-            }
+      def resultRow( current : (Char,Coord2D), res:Int): Int = {
+        if(current._1 == word.head) {
+          searchDirections(word, board, current._2,directions) + res
+        }else {
+          res
         }
-        aux(row, 0)
       }
+      iterateMatrix(board, (a:Int, b:Int) => (a+b) , resultRow, 0)
 
-      def aux(bAux: Board, p: Coord2D): Int = bAux match {
-        case Nil => 0
-        case head :: tail =>
-          countOccurrenceInRow(head, p._1) + aux(tail, (p._1 + 1,0))
-      }
-      aux(board, (0, 0))
     }
 
     val directions = Direction.values.toList filter (x => x != INVALID)
     val correctNrWord = wordsToFind map (x => if(isPalindrome(x.toList)) 2 else 1)
     val wordsOccurrences = wordsToFind map (x => (countOccurrenceInBoard(board, x.toList, directions)))
-    print(correctNrWord, wordsOccurrences)
     correctNrWord == wordsOccurrences
   }
 
+  def iniGame(boardSize: Int):GameState = {
+    val seed = readRandom()
+    val wordsToPlace = lerPalavrasEscondidas("HiddenWords.txt")
+    val emptyBoard: Board = List.fill(boardSize)(List.fill(boardSize)(' '))
+    val boardWithHiddenWords: Board = setBoardWithWords(emptyBoard, wordsToPlace)
+    val board: (Board,MyRandom) = validateBoard(completeBoardRandomly(boardWithHiddenWords, MyRandom(seed), randomChar), wordsToPlace)
+    writeRandom(board._2.nextInt._1)
+    val emptyColorBoard = List.fill(boardSize)(List.fill(boardSize)('W'))
+    GameState(board, wordsToPlace, emptyColorBoard)
+  }
 
+  def updateGameState(oldGameState: GameState, guess:String):GameState = {
+    val foundedCoords = getItem(oldGameState.wordsToFind.filter(_._1 == guess), 0)._2 //Sabendo que existe uma palavra certa na posiçao indicada verifica se foi a palavra dada
+    val updatedWordsToFind = oldGameState.wordsToFind.filterNot(_._1 == guess)
+    val updatedColorBoard = setGreenWords(oldGameState.colorBoard, foundedCoords)
 
+    GameState(oldGameState.board, updatedWordsToFind,updatedColorBoard)
+  }
 
-
-
+  def validateBoard(boardR: (Board,MyRandom), wordsToFind: List[(String, List[Coord2D])]): (Board, MyRandom) = {
+    val wordList = wordsToFind map (x => x._1)
+    val boardSize = boardR._1.length
+    val r = boardR._2
+    if (checkBoard(boardR._1, wordList)) {
+      boardR
+    } else {
+      val emptyBoard = List.fill(boardSize)(List.fill(boardSize)(' '))
+      val boardWithHiddenWords = setBoardWithWords(emptyBoard, wordsToFind)
+      val boardR = completeBoardRandomly(boardWithHiddenWords, r, randomChar)
+      validateBoard(boardR, wordsToFind)
+    }
+  }
 }

@@ -1,4 +1,4 @@
-import UtilsGameEngine.Coord2D
+import UtilsGeneral.Coord2D
 
 object Direction extends Enumeration {
   type Direction = Value
