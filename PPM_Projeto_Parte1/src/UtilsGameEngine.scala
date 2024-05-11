@@ -142,6 +142,16 @@ object UtilsGameEngine {
   }
 
   def play(wordInput : String, board: Board, startPos: Coord2D, dir: Direction): Boolean = {
+      countPaths(wordInput : String, board: Board, startPos: Coord2D, dir: Direction) > 0
+  }
+
+
+  private def listToString(l: List[Char]): String = l match {
+    case Nil => ""
+    case head::tail => head + listToString(tail)
+  }
+
+  def countPaths(wordInput : String, board: Board, startPos: Coord2D, dir: Direction): Int = {
     def isValidPos(pos: Coord2D, board:Board): Boolean = {
       val (i,j) = pos
       i >= 0 && j < board.length && j >= 0 && j < getItem(board, i).length
@@ -152,48 +162,53 @@ object UtilsGameEngine {
     val wordList = wordInput.toList
     val isCorrectChar = getItem(getItem(board, i1), j1) == getItem(wordList, 0)
     val directionList = Direction.values.toList filter (x => x != Direction.getOpposite(dir) &&  x != INVALID)
-    wordInput.length match{
-      case 0 => false
-      case 1 => isCorrectChar
-      case _ =>
-          isValidPos((i2, j2), board) &&
-          isCorrectChar &&
-          getItem(getItem(board, i2), j2) == getItem(wordList, 1) &&
-          searchDirections(wordInput.tail.toList, board, (i2, j2), directionList)
+    if(isValidPos((i2, j2), board) && isCorrectChar && getItem(getItem(board, i2), j2) == getItem(wordList, 1)) {
+      searchDirections(wordInput.tail.toList, board, (i2, j2), directionList)
+    }else 0
+  }
+
+  def searchDirections(word: List[Char], board: Board, startPos: Coord2D, directions: List[Direction]): Int = {
+  val (i1, j1) = startPos
+  val isCorrectChar = getItem (getItem (board, i1), j1) == getItem (word, 0)
+  if (word.length == 1) {
+    if(isCorrectChar) 1
+    else 0
+  }else {
+    directions match {
+        case Nil => 0
+        case dir :: tail => countPaths(listToString(word), board, startPos, dir) + searchDirections(word, board, startPos, tail)
+      }
     }
   }
 
-  def searchDirections(word: List[Char], board: Board, startPos: Coord2D, directions: List[Direction]): Boolean = directions match {
-    case Nil => false
-    case dir :: tail =>  play(listToString(word), board, startPos, dir) || searchDirections(word, board, startPos, tail)
-  }
 
-  private def listToString(l: List[Char]): String = l match {
-    case Nil => ""
-    case head::tail => head + listToString(tail)
-  }
-
-
-  def checkBoard(board: Board, wordsToFind: List[String]): Int = {
-    def checkWord(word: String, startPos: Coord2D): Int = {
-      def aux(c: Char, p: Coord2D): Boolean = {
-        if (compCoord(startPos, p, board) > 0) {
-          searchDirections(word.toList, board, p, Direction.values.toList filter (x => x != INVALID))
-        } else false
+  def checkBoard(board: Board, wordsToFind: List[String]): List[Int] = {
+    def countOccurrenceInBoard(board: Board, word:List[Char], directions: List[Direction]): Int = {
+      def countOccurrenceInRow(row: List[Char], i: Int): Int = {
+        def aux(l: List[Char], j: Int): Int = l match {
+          case Nil => 0
+          case head :: tail=>
+            if(head == word.head) {
+              searchDirections(word, board, (i,j),directions) + aux(tail, j + 1)
+            }else {
+              aux(tail, j + 1)
+            }
+        }
+        aux(row, 0)
       }
 
-      val res = iterateBoard(board, aux)
-      val nextPos = nextCoord(res._2._2, board)
-      print(res)
-      if (nextPos != (0, 0)) {
-        if (res._1) 1 + checkWord(word, nextPos)
-        else checkWord(word, nextPos)
-      } else 0
+      def aux(bAux: Board, p: Coord2D): Int = bAux match {
+        case Nil => 0
+        case head :: tail =>
+          countOccurrenceInRow(head, p._1) + aux(tail, (p._1 + 1,0))
+      }
+      aux(board, (0, 0))
     }
 
-    // Função para verificar quantas vezes cada palavra pode ser encontrada no tabuleiro
-    wordsToFind.map(word => checkWord(word, (0, 0))).sum
+    val directions = Direction.values.toList filter (x => x != INVALID)
+    wordsToFind map (x => (countOccurrenceInBoard(board, x.toList, directions)))
   }
+  
 
 
 

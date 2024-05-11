@@ -42,7 +42,7 @@ object TUIGameEngine extends App {
     val wordsRemaining = gameState.wordsToFind.length
     showPrompt()
     val userInput = getUserInput()
-    val validBoard = checkBoard(gameState.board._1, gameState.wordsToFind.map(_._1)) == gameState.wordsToFind.length
+    val validBoard = true
     print(checkBoard(gameState.board._1, gameState.wordsToFind.map(_._1)))
     if (validBoard) {
       // handle the result

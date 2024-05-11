@@ -66,7 +66,7 @@ class Controller {
     val filePath = "HiddenWords.txt"
     val wordsToPlace = lerPalavrasEscondidas(filePath)
     val wordsToFind =  wordsToPlace map (x => x._1)
-    val emptyBoard: Board = List.fill(8)(List.fill(8)(' '))
+    val emptyBoard: Board = List.fill(5)(List.fill(5)(' '))
     val boardWithHiddenWords: Board = setBoardWithWords(emptyBoard, wordsToPlace)
     val board: (Board,MyRandom) = completeBoardRandomly(boardWithHiddenWords, MyRandom(2), randomChar)
 
