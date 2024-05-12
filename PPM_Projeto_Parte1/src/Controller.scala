@@ -1,6 +1,8 @@
 import UtilsGameEngine.{GameState, correctGuess, iniGame, play, updateGameState}
 import UtilsGeneral.{Board, Coord2D, getItem, inList, iterateMatrix}
 import UtilsTUI.printBoard
+import javafx.animation.AnimationTimer
+import javafx.collections.ObservableList
 import javafx.fxml.FXML
 import javafx.scene.control.{Button, Label}
 import javafx.scene.layout.GridPane
@@ -25,26 +27,44 @@ class Controller {
   var makePlayButton: Button = _
 
   @FXML
-  var wordLabel: Label = _
+  var resetPlayButton: Button = _
+
+  @FXML
+  var timerLabel: Label = _
+
+  @FXML
+  var endGameLabel: Label = _
+
+  var timer: Timer = _
 
   def makeBoard(board: Board):Unit = {
     def resRow(current:(Char,Coord2D), a:Unit):Unit = {
       val button = new Button(current._1.toString)
-      button.setMinWidth(30)
-      button.setMinHeight(30)
+      button.setMinWidth(45)
+      button.setMinHeight(45)
       button.setOnAction(onLetterClicked)
       button.setStyle(BUTTON_DEFAULT)
       boardPane.add(button, current._2._2, current._2._1)
     }
     def resM(a:Unit, b:Unit):Unit = {}
-
     iterateMatrix[Char, Unit, Unit](board, resM, resRow, (),())
   }
 
   def initialize(): Unit = {
+    startGame()
+  }
+
+  def startGame(): Unit = {
     gameState = iniGame(5)
+    boardPane.setVisible(true)
+    makePlayButton.setVisible(true)
+    resetPlayButton.setVisible(true)
+    endGameLabel.setVisible(false)
     makeBoard(gameState.board._1)
     paintBoard(gameState.board._1, gameState.colorBoard)
+
+    timer = new Timer(this)
+    timer.startTimer()
     resetPlay()
   }
 
@@ -63,18 +83,17 @@ class Controller {
       case _ => println("Unknown event source")
     }
   }
-
   @FXML
   private def onMakePlayButtonClick(): Unit = {
     if(guess.length > 1) {
       val initialCoord = guess.head
       val initialDirection = Direction.getDirection(initialCoord, getItem(guess, 1))
-      println(word, gameState.board._1, initialCoord, initialDirection)
       if (correctGuess(word, initialCoord, initialDirection, gameState)) {
         gameState = updateGameState(gameState, word)
         paintBoard(gameState.board._1, gameState.colorBoard)
         resetPlay()
         if (gameState.wordsToFind.isEmpty) {
+          victory()
           println("Win")
         }
 
@@ -83,6 +102,19 @@ class Controller {
       }
       resetPlay()
     }
+  }
+
+  @FXML
+  private def onResetPlayButtonClick(): Unit = {
+    paintBoard(gameState.board._1, gameState.colorBoard)
+    resetPlay()
+  }
+
+  @FXML
+  private def onRestartButtonClick(): Unit = {
+    timer.stopTimer()
+    boardPane.getChildren.clear()
+    startGame()
   }
 
   private def paintBoard(board: Board, colorBoard: Board):Unit = {
@@ -97,8 +129,6 @@ class Controller {
       button.setStyle(getSyle(styleType))
     }
     def resM(a:Unit, b:Unit):Unit = {}
-
-    printBoard(colorBoard, colorBoard)
     iterateMatrix[Char, Unit, Unit](board, resM, resRow, (), ())
   }
 
@@ -107,15 +137,65 @@ class Controller {
     guess = Nil
   }
 
-  @FXML
-  private def onResetPlayButtonClick(): Unit = {
-    paintBoard(gameState.board._1, gameState.colorBoard)
-    resetPlay()
-  }
-
   private def validPlay(x: Integer, y: Integer, guess: List[Coord2D]): Boolean = guess match {
     case Nil => true
     case _ => Direction.getDirection(guess.last, (x, y)) != Direction.INVALID
   }
 
- }
+
+  def endGame():Unit = {
+    boardPane.setVisible(false)
+    makePlayButton.setVisible(false)
+    resetPlayButton.setVisible(false)
+    endGameLabel.setVisible(true)
+  }
+  def gameOver(reason: String): Unit = {
+    endGame()
+    endGameLabel.setText(endMessage(gameState, reason))
+    print("Game Over " +  reason)
+  }
+
+  def victory(): Unit = {
+    endGame()
+    timer.stopTimer()
+    endGameLabel.setText(endMessage(gameState, ""))
+  }
+
+  private def endMessage(gameState: GameState, reason: String):String = {
+      val timeLeft = (gameState.timeout - System.currentTimeMillis())/1000
+      gameState.wordsToFind.length match{
+      case 0 =>
+        "Congrats, you won with " + timeLeft + "s left"
+      case x =>
+          "You lost beacause " + reason + ", there where " + x.toString + " words left to find"
+    }
+  }
+
+}
+
+class Timer(controller: Controller) extends AnimationTimer {
+  val timeout = controller.gameState.timeout
+  var label = controller.timerLabel
+  private val clockSymbols = Array(
+    "\uD83D\uDD5B", "\uD83D\uDD5A", "\uD83D\uDD59", "\uD83D\uDD58", "\uD83D\uDD57", "\uD83D\uDD56", "\uD83D\uDD55", "\uD83D\uDD54", "\uD83D\uDD53", "\uD83D\uDD52", "\uD83D\uDD51", "\uD83D\uDD50"
+  )
+  override def handle(now: Long): Unit = {
+    val timeLeft = (timeout - System.currentTimeMillis()) / 1000
+    if(timeLeft > 0){
+      val index = (timeLeft % clockSymbols.length).toInt
+      label.setText(clockSymbols(index) + " " + timeLeft.toString)
+    }else{
+      label.setText(clockSymbols(0) + " " + 0)
+      controller.gameOver("time ran out")
+      stopTimer()
+    }
+  }
+
+  def startTimer(): Unit = {
+    this.start()
+  }
+
+  def stopTimer(): Unit = {
+    this.stop()
+  }
+}
