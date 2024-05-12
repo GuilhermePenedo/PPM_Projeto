@@ -38,7 +38,7 @@ class Controller {
     }
     def resM(a:Unit, b:Unit):Unit = {}
 
-    iterateMatrix[Char, Unit](board, resM, resRow, ())
+    iterateMatrix[Char, Unit, Unit](board, resM, resRow, (),())
   }
 
   def initialize(): Unit = {
@@ -99,7 +99,7 @@ class Controller {
     def resM(a:Unit, b:Unit):Unit = {}
 
     printBoard(colorBoard, colorBoard)
-    iterateMatrix[Char, Unit](board, resM, resRow, ())
+    iterateMatrix[Char, Unit, Unit](board, resM, resRow, (), ())
   }
 
   private def resetPlay() = {

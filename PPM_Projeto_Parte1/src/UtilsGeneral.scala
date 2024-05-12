@@ -45,34 +45,28 @@ object UtilsGeneral{
   }
 
   def updateMatrix[A](matrix: List[List[A]], fun: (A, Coord2D) => A): List[List[A]] = {
-
-    def updateRow(row: List[A], i: Int): List[A] = {
-      def aux(l: List[A], j: Int): List[A] = l match {
-        case Nil => Nil
-        case head :: tail => fun(head, (i,j)) :: aux(tail, j+1)
-      }
-      aux(row, 0)
+    def resultRow(current:(A, Coord2D), tail:List[A]): List[A] = {
+      fun(current._1, current._2) :: tail
     }
 
-    def aux(m: List[List[A]], p: Coord2D): List[List[A]] = m match {
-      case Nil => Nil
-      case head :: tail => updateRow(head, p._1) :: aux(tail, (p._1+1, p._2))
+    def resultM(head: List[A], tail: List[List[A]]): List[List[A]] = {
+      head :: tail
     }
-    aux(matrix, (0, 0))
+    iterateMatrix(matrix, resultM, resultRow, Nil, Nil)
   }
 
-  def iterateMatrix[A,B](matrix: List[List[A]], resultM:(B,B) => B, resultRow: ((A, Coord2D),B) => B, emptyValue:B): B= {
+  def iterateMatrix[A,B,C](matrix: List[List[A]], resultM:(B,C) => C, resultRow: ((A, Coord2D),B) => B, rowEmptyValue:B, mEmptyValue:C): C= {
     def iterateRow(row: List[A], i: Int): B = {
       def aux(l: List[A], j: Int): B = l match {
-        case Nil => emptyValue
+        case Nil => rowEmptyValue
         case head :: tail =>
           resultRow((head, (i,j)), aux(tail, j+1))
       }
       aux(row, 0)
     }
 
-    def aux(m: List[List[A]], p: Coord2D): B = m match {
-      case Nil => emptyValue
+    def aux(m: List[List[A]], p: Coord2D): C = m match {
+      case Nil => mEmptyValue
       case head :: tail =>
         resultM(iterateRow(head, p._1),aux(tail, (p._1+1, p._2)))
     }

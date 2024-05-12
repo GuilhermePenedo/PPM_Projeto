@@ -7,8 +7,8 @@ import scala.annotation.tailrec
 
 
 object UtilsGameEngine {
-  case class GameState(board: (Board,MyRandom), wordsToFind: List[(String, List[Coord2D])], colorBoard:Board)
-
+  case class GameState(board: (Board,MyRandom), wordsToFind: List[(String, List[Coord2D])], colorBoard:Board, timeout:Long)
+  val DEFAULT_TIMEOUT = 60000
   def fillOneCell(board:Board, letter: Char, coord:Coord2D):Board = {
     def checkCell(c: Char, p: Coord2D): Char = {
       if (p == coord) letter else c
@@ -112,7 +112,7 @@ object UtilsGameEngine {
           res
         }
       }
-      iterateMatrix(board, (a:Int, b:Int) => (a+b) , resultRow, 0)
+      iterateMatrix(board, (a:Int, b:Int) => (a+b) , resultRow, 0, 0)
 
     }
 
@@ -127,10 +127,11 @@ object UtilsGameEngine {
     val wordsToPlace = lerPalavrasEscondidas("HiddenWords.txt")
     val emptyBoard: Board = List.fill(boardSize)(List.fill(boardSize)(' '))
     val boardWithHiddenWords: Board = setBoardWithWords(emptyBoard, wordsToPlace)
-    val board: (Board,MyRandom) = validateBoard(completeBoardRandomly(boardWithHiddenWords, MyRandom(seed), randomChar), wordsToPlace)
+    //val board: (Board,MyRandom) = validateBoard(completeBoardRandomly(boardWithHiddenWords, MyRandom(seed), randomChar), wordsToPlace)
+    val board: (Board,MyRandom) = completeBoardRandomly(boardWithHiddenWords, MyRandom(seed), randomChar)
     writeRandom(board._2.nextInt._1)
     val emptyColorBoard = List.fill(boardSize)(List.fill(boardSize)('W'))
-    GameState(board, wordsToPlace, emptyColorBoard)
+    GameState(board, wordsToPlace, emptyColorBoard, System.currentTimeMillis() + DEFAULT_TIMEOUT)
   }
 
   def updateGameState(oldGameState: GameState, guess:String):GameState = {
@@ -138,7 +139,7 @@ object UtilsGameEngine {
     val updatedWordsToFind = oldGameState.wordsToFind.filterNot(_._1 == guess)
     val updatedColorBoard = setGreenWords(oldGameState.colorBoard, foundedCoords)
 
-    GameState(oldGameState.board, updatedWordsToFind,updatedColorBoard)
+    GameState(oldGameState.board, updatedWordsToFind,updatedColorBoard, oldGameState.timeout)
   }
 
   def validateBoard(boardR: (Board,MyRandom), wordsToFind: List[(String, List[Coord2D])]): (Board, MyRandom) = {

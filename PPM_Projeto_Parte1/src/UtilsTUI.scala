@@ -9,12 +9,12 @@ object UtilsTUI {
   val RESET = "\u001B[0m"
   val PROMPT_MESSAGE = "\n(T)ry word or (q)uit: "
   val INVALID_KEY_MESSAGE = "Invalid Key"
-  val WORD_INPUT_MESSAGE = "\nWhat word do you want to input"
-  val COORDINATES_INPUT_MESSAGE = "\nWhat are the coordinates (line,column)"
-  val DIRECTION_INPUT_MESSAGE = "\nWhat is the initial direction? (Ex. North, SouthEast, West)"
-  val GAME_OVER_MESSAGE = "\n=== GAME OVER ==="
+  val WORD_INPUT_MESSAGE = "What word do you want to input: "
+  val COORDINATES_INPUT_MESSAGE = "What are the coordinates (line,column): "
+  val DIRECTION_INPUT_MESSAGE = "What is the initial direction? (Ex. North, SouthEast, West): "
+  val GAME_OVER_MESSAGE = "\n=== GAME OVER ===\n"
   val VICTORY_MESSAGE = "\n=== CONGRATULATIONS ==="
-  val ASK_BOARD_SIZE = "\nWhat is the size of the board you want to play with?"
+  val ASK_BOARD_SIZE = "What is the size of the board you want to play with?: "
 
   def showPrompt(): Unit = {
     print(PROMPT_MESSAGE)
@@ -42,7 +42,7 @@ object UtilsTUI {
       val color = getColor(colorType)
       color + current._1.toString + RESET + " " + a
     }
-    print(iterateMatrix(board, (a:String,b:String)=>(a + "\n" + b),resRow, ""))
+    print("\n" + iterateMatrix(board, (a:String,b:String)=>(a + "\n" + b),resRow, "", "") + "\n")
   }
 
   def wordToColor(w: List[Char], c: String): String = w match {
@@ -88,12 +88,12 @@ object UtilsTUI {
   }
 
   def askWord(): String = {
-    println(WORD_INPUT_MESSAGE)
+    print(WORD_INPUT_MESSAGE)
     readLine().toUpperCase()
   }
 
   def askPoint(): Coord2D = {
-    println(COORDINATES_INPUT_MESSAGE)
+    print(COORDINATES_INPUT_MESSAGE)
     val input = readLine()
     try {
       stringToPoint(input)
@@ -105,7 +105,7 @@ object UtilsTUI {
   }
 
   def askDirection(): Direction = {
-    println(DIRECTION_INPUT_MESSAGE)
+    print(DIRECTION_INPUT_MESSAGE)
     val input = readLine().toUpperCase()
     try {
       stringToDirection(input)
@@ -118,10 +118,18 @@ object UtilsTUI {
 
   def printGameState(gameState: GameState): Unit = {
     printBoard(gameState.board._1, gameState.colorBoard)
-    println("\n Words Remaining: " + gameState.wordsToFind.length)
+    println("Words Remaining: " + gameState.wordsToFind.length)
   }
 
-  def printGameOver(): Unit = println(GAME_OVER_MESSAGE)
 
-  def printVictory(): Unit = println(VICTORY_MESSAGE)
+  def timeRemaining(timeout:Long): Unit = {
+    val timeLeft = (timeout - System.currentTimeMillis())/1000
+    println("Time Left: " + timeLeft.toString + "s, hurry up!")
+  }
+  def printGameOver(reason: String): Unit = println(GAME_OVER_MESSAGE + reason)
+
+  def printVictory(timeout: Long): Unit = {
+    val timeLeft = (timeout - System.currentTimeMillis())/1000
+    println("Wow, you still had " + timeLeft.toString + "s to spare!\n" + VICTORY_MESSAGE)
+  }
 }
