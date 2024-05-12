@@ -1,15 +1,13 @@
 import Direction.{Direction, INVALID}
-import FileManager.{lerPalavrasEscondidas, readRandom, writeRandom}
+import FileManager.lerPalavrasEscondidas
 import UtilsGeneral._
-import UtilsTUI.setGreenWords
 
-import java.io.FileNotFoundException
+import java.io.{FileNotFoundException, PrintWriter}
 import scala.annotation.tailrec
 
 
-object UtilsGameEngine {
-  case class GameState(board: (Board,MyRandom), wordsToFind: List[(String, List[Coord2D])], colorBoard:Board, timeout:Long)
-  val DEFAULT_TIMEOUT = 60
+object UtilsLevelMaker {
+  case class EditState(board: Board, wordsToAdd: List[(String, List[Coord2D])], colorBoard:Board)
   def fillOneCell(board:Board, letter: Char, coord:Coord2D):Board = {
     def checkCell(c: Char, p: Coord2D): Char = {
       if (p == coord) letter else c
@@ -39,38 +37,8 @@ object UtilsGameEngine {
     aux(board, hiddenWords)
   }
 
-  def completeBoardRandomly(board:Board,r:MyRandom, f: MyRandom => (Char, MyRandom)):(Board, MyRandom) = {
-    def iterateRow(row:List[Char], rowR:MyRandom): (List[Char],MyRandom)  = {
-      def aux(l: List[Char], rAux:MyRandom): (List[Char],MyRandom) = l match {
-        case Nil => (Nil,rAux)
-        case head :: tail => {
-          val currentR = f(rAux)
-          val nextCell = aux(tail, currentR._2)
-          if(head == ' '){
-            (currentR._1 :: nextCell._1, nextCell._2)
-          } else (head :: nextCell._1, nextCell._2)
-        }
-      }
-      aux(row, rowR)
-    }
-
-    def aux(bAux:Board, rAux:MyRandom):(Board,MyRandom) = bAux match {
-      case Nil => (Nil,rAux)
-      case head :: tail => {
-        val row = iterateRow(head, rAux)
-        val nextRow = aux(tail, row._2)
-        (row._1 :: nextRow._1, nextRow._2)
-      }
-    }
-    aux(board, r)
-  }
-
   def play(wordInput : String, board: Board, startPos: Coord2D, dir: Direction): Boolean = {
       countPaths(wordInput,board,startPos,dir, Nil) > 0
-  }
-
-  def correctGuess(word: String, initialCoord:Coord2D, initialDirection:Direction, gameState:GameState):Boolean = {
-    play(word, gameState.board._1, initialCoord, initialDirection) && inList(word, gameState.wordsToFind map (x => x._1))
   }
 
   def countPaths(wordInput : String, board: Board, startPos: Coord2D, dir: Direction, searchedPos:List[Coord2D]): Int = {
@@ -120,40 +88,26 @@ object UtilsGameEngine {
     correctNrWord == wordsOccurrences
   }
 
-  def iniGame(boardSize: Int, n:String):GameState = {
+  def iniEditState(boardSize: Int, n: String):EditState = {
     try{
-        val seed = readRandom()
-        val wordsToPlace = lerPalavrasEscondidas("board" +n+".txt")
-        val emptyBoard: Board = List.fill(boardSize)(List.fill(boardSize)(' '))
-        val boardWithHiddenWords: Board = setBoardWithWords(emptyBoard, wordsToPlace)
-        val board: (Board,MyRandom) = validateBoard(completeBoardRandomly(boardWithHiddenWords, MyRandom(seed), randomChar), wordsToPlace)
-        writeRandom(board._2.nextInt._1)
-        val emptyColorBoard = List.fill(boardSize)(List.fill(boardSize)('W'))
-        GameState(board, wordsToPlace, emptyColorBoard, System.currentTimeMillis() + (DEFAULT_TIMEOUT*1000))
-      }catch {
-      case _:FileNotFoundException => throw new IllegalArgumentException
+      val wordsToPlace = lerPalavrasEscondidas("board" + n+ ".txt")
+      val emptyBoard: Board = List.fill(boardSize)(List.fill(boardSize)(' '))
+      val boardWithHiddenWords: Board = setBoardWithWords(emptyBoard, wordsToPlace)
+      val emptyColorBoard = List.fill(boardSize)(List.fill(boardSize)('W'))
+      EditState(boardWithHiddenWords, wordsToPlace, emptyColorBoard)
+    }catch {
+      case _:FileNotFoundException =>
+        new PrintWriter("board" + n + ".txt")
+        iniEditState(boardSize, n)
     }
   }
 
-  def updateGameState(oldGameState: GameState, guess:String):GameState = {
-    val foundedCoords = getItem(oldGameState.wordsToFind.filter(_._1 == guess), 0)._2 //Sabendo que existe uma palavra certa na posiçao indicada verifica se foi a palavra dada
-    val updatedWordsToFind = oldGameState.wordsToFind.filterNot(_._1 == guess)
-    val updatedColorBoard = setGreenWords(oldGameState.colorBoard, foundedCoords)
-
-    GameState(oldGameState.board, updatedWordsToFind,updatedColorBoard, oldGameState.timeout)
+  def updateEditState(oldEditState: EditState, newBoard: Board, newWordsToAdd:List[(String, List[Coord2D])]):EditState = {
+    EditState(newBoard, newWordsToAdd,oldEditState.colorBoard)
   }
 
-  def validateBoard(boardR: (Board,MyRandom), wordsToFind: List[(String, List[Coord2D])]): (Board, MyRandom) = {
+  def validateBoard(board: Board, wordsToFind: List[(String, List[Coord2D])]): Boolean = {
     val wordList = wordsToFind map (x => x._1)
-    val boardSize = boardR._1.length
-    val r = boardR._2
-    if (checkBoard(boardR._1, wordList)) {
-      boardR
-    } else {
-      val emptyBoard = List.fill(boardSize)(List.fill(boardSize)(' '))
-      val boardWithHiddenWords = setBoardWithWords(emptyBoard, wordsToFind)
-      val boardR = completeBoardRandomly(boardWithHiddenWords, r, randomChar)
-      validateBoard(boardR, wordsToFind)
-    }
+    checkBoard(board, wordList)
   }
 }

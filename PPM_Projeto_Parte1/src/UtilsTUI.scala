@@ -15,9 +15,22 @@ object UtilsTUI {
   val GAME_OVER_MESSAGE = "\n=== GAME OVER ===\n"
   val VICTORY_MESSAGE = "\n=== CONGRATULATIONS ==="
   val ASK_BOARD_SIZE = "What is the size of the board you want to play with?: "
+  val ASK_BOARD_ID = "What is the board ID you want to play?: "
 
   def showPrompt(): Unit = {
     print(PROMPT_MESSAGE)
+  }
+
+  def askBoardID(): String = {
+    print(ASK_BOARD_ID)
+    val input = readLine()
+    try {
+      input.toInt.toString
+    } catch {
+      case _: NumberFormatException =>
+        println("Invalid input. Please enter a valid number.")
+        askBoardID() // Recursive call
+    }
   }
 
   def askBoardSize(): Int = {

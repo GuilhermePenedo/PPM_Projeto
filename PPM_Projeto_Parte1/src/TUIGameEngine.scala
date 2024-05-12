@@ -1,16 +1,23 @@
-import UtilsGameEngine.{GameState, correctGuess, iniGame, play, updateGameState}
-import UtilsGeneral.inList
-
+import UtilsGameEngine.{GameState, correctGuess, iniGame, updateGameState}
 import scala.annotation.tailrec
-import UtilsTUI.{askBoardSize, askForPlay, getUserInput, printBoard, printGameOver, printGameState, printVictory, showPrompt, timeRemaining}
+import UtilsTUI.{askBoardID, askBoardSize, askForPlay, getUserInput, printBoard, printGameOver, printGameState, printVictory, showPrompt, timeRemaining}
 
 
 object TUIGameEngine extends App {
-  val initialTime = System.currentTimeMillis()
-  mainLoop(iniGame(askBoardSize()))
+  startGame()
+  @tailrec
+  private def startGame():Unit = {
+    try {
+      mainLoop(iniGame(askBoardSize(), askBoardID()))
+    }catch {
+      case _:IllegalArgumentException =>
+        println("No board with that ID, try again")
+        startGame()
+    }
+  }
 
   @tailrec
-  def mainLoop(gameState: GameState) {
+  private def mainLoop(gameState: GameState): Unit = {
     if(gameState.timeout - System.currentTimeMillis() > 0) {
       timeRemaining(gameState.timeout)
       showPrompt()

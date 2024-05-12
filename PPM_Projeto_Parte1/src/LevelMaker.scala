@@ -1,23 +1,22 @@
-import javafx.animation.AnimationTimer
 import javafx.application.Application
-import javafx.fxml.{FXML, FXMLLoader}
+import javafx.fxml.FXMLLoader
 import javafx.scene.{Parent, Scene}
 import javafx.stage.Stage
 
 
-class GameGUI extends Application {
+class LevelMaker extends Application {
   override def start(primaryStage: Stage): Unit = {
-    primaryStage.setTitle("Letter Soup")
+    primaryStage.setTitle("Level Maker")
     val fxmlLoader =
-      new FXMLLoader(getClass.getResource("Controller.fxml"))
+      new FXMLLoader(getClass.getResource("LevelMakerController.fxml"))
     val mainViewRoot: Parent = fxmlLoader.load()
     val scene = new Scene(mainViewRoot)
     primaryStage.setScene(scene)
     primaryStage.show()
   }
 }
-object FxApp {
+object LevelMakerApp {
   def main(args: Array[String]): Unit = {
-    Application.launch(classOf[GameGUI], args: _*)
+    Application.launch(classOf[LevelMaker], args: _*)
   }
 }

@@ -5,13 +5,13 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Controller">
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="GUIGameEngineController">
    <children>
-      <Label fx:id="endGameLabel" alignment="CENTER" layoutX="172.0" layoutY="96.0" prefHeight="231.0" prefWidth="244.0" textAlignment="CENTER" wrapText="true">
+      <Label fx:id="endGameLabel" alignment="CENTER" layoutX="156.0" layoutY="96.0" prefHeight="220.0" prefWidth="280.0" textAlignment="CENTER" wrapText="true">
          <font>
             <Font size="20.0" />
          </font></Label>
-      <Label fx:id="timerLabel" alignment="CENTER" contentDisplay="CENTER" layoutX="14.0" layoutY="24.0" prefHeight="53.0" prefWidth="85.0" textAlignment="CENTER" wrapText="true">
+      <Label fx:id="timerLabel" alignment="CENTER" contentDisplay="CENTER" layoutX="15.0" layoutY="27.0" prefHeight="53.0" prefWidth="85.0" textAlignment="CENTER" wrapText="true">
          <font>
             <Font size="18.0" />
          </font>
@@ -39,5 +39,8 @@
          <font>
             <Font size="15.0" />
          </font></Button>
+      <Button fx:id="changeBoardButton" layoutX="68.0" layoutY="353.0" mnemonicParsing="false" onMouseClicked="#onChangeBoardButtonClick" text="Go" />
+      <TextField fx:id="boardIDInput" layoutX="14.0" layoutY="353.0" prefHeight="25.0" prefWidth="48.0" />
+      <Label layoutX="14.0" layoutY="333.0" prefHeight="17.0" prefWidth="48.0" text="Board:" />
    </children>
 </AnchorPane>

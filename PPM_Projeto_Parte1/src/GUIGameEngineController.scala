@@ -1,24 +1,22 @@
-import UtilsGameEngine.{GameState, correctGuess, iniGame, play, updateGameState}
+import UtilsGameEngine.{GameState, correctGuess, iniGame, updateGameState}
 import UtilsGeneral.{Board, Coord2D, getItem, inList, iterateMatrix}
-import UtilsTUI.printBoard
 import javafx.animation.AnimationTimer
-import javafx.collections.ObservableList
 import javafx.fxml.FXML
-import javafx.scene.control.{Button, Label}
+import javafx.scene.control.{Button, Label, TextField}
 import javafx.scene.layout.GridPane
 import javafx.event.ActionEvent
 
-class Controller {
+class GUIGameEngineController{
   val BUTTON_BORDER = "-fx-border-color: black; " + "-fx-border-width: 1px; " + "-fx-border-style: solid;"
   val BUTTON_PRESSED = "-fx-background-color: #BEBEFFFF;" + BUTTON_BORDER
   val BUTTON_DEFAULT = "-fx-background-color: #ffffff;" + BUTTON_BORDER
   val BUTTON_GREEN = "-fx-background-color: #4CBB17;" + BUTTON_BORDER
 
-  // Criar instancia ininicial de jogo
   var gameState: GameState = _
   var word: String = _
   var guess: List[Coord2D] = _
-  var greenSquares: List[Coord2D] = Nil
+  var boardID: String = "0"
+  var timer: Timer = _
 
   @FXML
   var boardPane: GridPane = _
@@ -35,7 +33,11 @@ class Controller {
   @FXML
   var endGameLabel: Label = _
 
-  var timer: Timer = _
+  @FXML
+  var changeBoardButton: Button = _
+
+  @FXML
+  var boardIDInput: TextField = _
 
   def makeBoard(board: Board):Unit = {
     def resRow(current:(Char,Coord2D), a:Unit):Unit = {
@@ -51,11 +53,13 @@ class Controller {
   }
 
   def initialize(): Unit = {
+    boardIDInput.setText(boardID)
     startGame()
   }
 
   def startGame(): Unit = {
-    gameState = iniGame(5)
+    gameState = iniGame(5, boardID)
+    boardPane.getChildren.clear()
     boardPane.setVisible(true)
     makePlayButton.setVisible(true)
     resetPlayButton.setVisible(true)
@@ -94,7 +98,6 @@ class Controller {
         resetPlay()
         if (gameState.wordsToFind.isEmpty) {
           victory()
-          println("Win")
         }
 
       }else{
@@ -113,8 +116,16 @@ class Controller {
   @FXML
   private def onRestartButtonClick(): Unit = {
     timer.stopTimer()
-    boardPane.getChildren.clear()
     startGame()
+  }
+
+  @FXML
+  private def onChangeBoardButtonClick(): Unit = {
+    timer.stopTimer()
+    val newBoardID = boardIDInput.getText
+    if(boardID != newBoardID)
+      boardID = newBoardID
+      startGame()
   }
 
   private def paintBoard(board: Board, colorBoard: Board):Unit = {
@@ -144,6 +155,7 @@ class Controller {
 
 
   def endGame():Unit = {
+    timer.stopTimer()
     boardPane.setVisible(false)
     makePlayButton.setVisible(false)
     resetPlayButton.setVisible(false)
@@ -152,12 +164,10 @@ class Controller {
   def gameOver(reason: String): Unit = {
     endGame()
     endGameLabel.setText(endMessage(gameState, reason))
-    print("Game Over " +  reason)
   }
 
   def victory(): Unit = {
     endGame()
-    timer.stopTimer()
     endGameLabel.setText(endMessage(gameState, ""))
   }
 
@@ -167,13 +177,13 @@ class Controller {
       case 0 =>
         "Congrats, you won with " + timeLeft + "s left"
       case x =>
-          "You lost beacause " + reason + ", there where " + x.toString + " words left to find"
+          "You lost because " + reason + ", there were " + x.toString + " words left to find"
     }
   }
 
 }
 
-class Timer(controller: Controller) extends AnimationTimer {
+class Timer(controller: GUIGameEngineController) extends AnimationTimer {
   val timeout = controller.gameState.timeout
   var label = controller.timerLabel
   private val clockSymbols = Array(
