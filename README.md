@@ -23,6 +23,3 @@ Players can click letters to trace words or use text commands.
 ## Technologies
 - **Language**: Scala
 - **Framework**: JavaFX
-
-## License
-MIT License
