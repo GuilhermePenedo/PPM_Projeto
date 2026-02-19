@@ -1,23 +1,28 @@
-# PPM Projeto
+# Letter Soup
 
-This project is aimed at developing a fantastic application that solves various problems.
+Letter Soup is a Scala-based word search puzzle game with two interfaces TUI and GUI. Players find hidden words in a letter grid before time expires. Game mechanics include selecting adjacent letters in 8 directions. 
+
+## Project Structure
+- **UtilsGameEngine.scala**: Core logic of the game engine.
+- **TUIGameEngine.scala**: Text interface for TUI gameplay.
+- **GUIGameEngine.scala**: Graphical interface using JavaFX.
+- **GUIGameEngineController.scala**: Controller for the graphical interface.
+- **Level Maker Tool**: For creating custom boards.
+- **Utilities**: For directions, file management, and general operations.
 
 ## Features
-- Great usability
-- Fast performance
-- Intuitive design
+- Interactive gameplay with timers.
+- Two UI options (TUI and GUI).
+- Custom level creation.
+- Persistent storage for saved games.
+- Visual feedback with color highlighting.
+- Support for multiple board sizes.
 
-## Installation
-To install the project, clone the repository and run the following commands:
+Players can click letters to trace words or use text commands.
 
-```
-cd PPM_Projeto
-npm install
-npm start
-```
-
-## Contributing
-Contributions are welcome! Please open an issue or submit a pull request if you have any ideas.
+## Technologies
+- **Language**: Scala
+- **Framework**: JavaFX
 
 ## License
-This project is licensed under the MIT License.
+MIT License
